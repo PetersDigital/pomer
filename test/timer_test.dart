@@ -41,23 +41,23 @@ void main() {
     });
 
     test('start() changes status to running', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       notifier.start();
-      expect(container.read(timerProvider).status, TimerStatus.running);
+      expect(container.read(timerNotifierProvider).status, TimerStatus.running);
     });
 
     test('pause() changes status to paused', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       notifier.start();
       notifier.pause();
-      expect(container.read(timerProvider).status, TimerStatus.paused);
+      expect(container.read(timerNotifierProvider).status, TimerStatus.paused);
     });
 
     test('reset() returns to initial state', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       notifier.start();
       notifier.reset();
-      final state = container.read(timerProvider);
+      final state = container.read(timerNotifierProvider);
       expect(state.status, TimerStatus.idle);
       expect(state.phase, TimerPhase.focus);
       expect(
@@ -67,16 +67,16 @@ void main() {
     });
 
     test('skip() on focus advances to shortBreak when cycles < 4', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       notifier.skip();
-      final state = container.read(timerProvider);
+      final state = container.read(timerNotifierProvider);
       expect(state.phase, TimerPhase.shortBreak);
       expect(state.status, TimerStatus.idle);
       expect(state.completedCycles, 1);
     });
 
     test('skip() after 3 skips on focus advances to longBreak on 4th', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       // Skip focus 3 times, alternating with short breaks.
       for (var i = 0; i < 3; i++) {
         notifier.skip(); // focus → shortBreak
@@ -84,28 +84,28 @@ void main() {
       }
       // Now completedCycles == 3; skip focus → longBreak.
       notifier.skip();
-      final state = container.read(timerProvider);
+      final state = container.read(timerNotifierProvider);
       expect(state.phase, TimerPhase.longBreak);
       expect(state.completedCycles, 0);
     });
 
     test('skip() on shortBreak advances to focus', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       notifier.skip(); // focus → shortBreak
       notifier.skip(); // shortBreak → focus
-      expect(container.read(timerProvider).phase, TimerPhase.focus);
+      expect(container.read(timerNotifierProvider).phase, TimerPhase.focus);
     });
 
     test('skip() on longBreak advances to focus with completedCycles reset',
         () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       for (var i = 0; i < 3; i++) {
         notifier.skip(); // focus → shortBreak
         notifier.skip(); // shortBreak → focus
       }
       notifier.skip(); // 4th focus → longBreak
       notifier.skip(); // longBreak → focus
-      final state = container.read(timerProvider);
+      final state = container.read(timerNotifierProvider);
       expect(state.phase, TimerPhase.focus);
       expect(state.completedCycles, 0);
     });
@@ -114,39 +114,39 @@ void main() {
         () async {
       // Use a short state directly to test _onTick logic via skip (same code
       // path as _nextPhaseState).
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       notifier.skip();
-      final state = container.read(timerProvider);
+      final state = container.read(timerNotifierProvider);
       expect(state.phase, TimerPhase.shortBreak);
       expect(state.totalSeconds, AppConstants.defaultShortBreakDuration * 60);
     });
 
     test('phase transition: after shortBreak completes → focus', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       notifier.skip(); // → shortBreak
       notifier.skip(); // → focus
-      expect(container.read(timerProvider).phase, TimerPhase.focus);
+      expect(container.read(timerNotifierProvider).phase, TimerPhase.focus);
     });
 
     test('phase transition: after longBreak completes → focus', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       for (var i = 0; i < 3; i++) {
         notifier.skip();
         notifier.skip();
       }
       notifier.skip(); // → longBreak
       notifier.skip(); // → focus
-      expect(container.read(timerProvider).phase, TimerPhase.focus);
+      expect(container.read(timerNotifierProvider).phase, TimerPhase.focus);
     });
 
     test('phase transition: after 4th focus → longBreak', () {
-      final notifier = container.read(timerProvider.notifier);
+      final notifier = container.read(timerNotifierProvider.notifier);
       for (var i = 0; i < 3; i++) {
         notifier.skip();
         notifier.skip();
       }
       notifier.skip(); // 4th focus → longBreak
-      expect(container.read(timerProvider).phase, TimerPhase.longBreak);
+      expect(container.read(timerNotifierProvider).phase, TimerPhase.longBreak);
     });
   });
 
