@@ -63,9 +63,6 @@ class TimerNotifier extends _$TimerNotifier {
       if (remaining != state.remainingSeconds) {
         state = state.copyWith(remainingSeconds: remaining);
       }
-    }
-
-    if (remaining >= 0) {
       return;
     }
 
