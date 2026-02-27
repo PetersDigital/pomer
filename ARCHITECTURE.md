@@ -51,10 +51,10 @@ lib/
 ├── features/
 │   ├── timer/                  # Pomodoro timer feature (v0.2.0)
 │   ├── settings/               # User preferences feature (v0.3.0)
-│   ├── statistics/             # Session stats feature (v0.5.0)
-│   ├── tasks/                  # Task list feature (v0.4.0)
-│   └── gamification/           # Achievements/streaks feature (v0.6.0)
-└── database/                   # Drift database definitions (v0.3.0+)
+│   ├── statistics/             # Session stats & database feature (v0.5.0)
+│   ├── tasks/                  # Task tracking feature (v0.6.0)
+│   └── gamification/           # Plant rewards & streaks feature (v0.7.0)
+└── database/                   # Drift database definitions (v0.5.0+)
 ```
 
 ---
@@ -117,17 +117,18 @@ GoRouter enables declarative deep linking on all platforms. Future features shou
 
 ## Data Layer
 
-### v0.1.0 (current)
-No persistent data. Theme mode defaults to system.
+### v0.1.0–v0.2.0 (current)
+No persistent data. Timer state is in-memory only. Theme mode defaults to system.
 
-### v0.3.0+ (planned)
-- **SharedPreferences** for simple key-value settings (durations, theme preference).
+### v0.3.0 (planned)
+- **SharedPreferences** for simple key-value settings (durations, theme preference, auto-start toggle).
 - Package: `shared_preferences: ^2.x`
 
-### v0.4.0+ (planned)
-- **Drift** for structured local data (sessions, tasks, achievements).
+### v0.5.0 (planned)
+- **Drift** (SQLite) for structured local data (session history, tasks, achievements).
 - Database definitions in `lib/database/`.
 - Each feature accesses the database through its own Drift DAO.
+- CSV export support for session data.
 
 ---
 
@@ -147,8 +148,8 @@ No persistent data. Theme mode defaults to system.
 ## Platform-Specific Notes
 
 ### Android
-- Min SDK: 21 (Android 5.0)
-- Target SDK: 34
+- Min SDK: 21 (Android 5.0 Lollipop)
+- Target SDK: 34 (Android 14)
 - Application ID: `com.petersdigital.pomer`
 - Main activity: `com.petersdigital.pomer.MainActivity` (extends `FlutterActivity`)
 
@@ -180,11 +181,13 @@ Build jobs only run if `analyze-and-test` passes.
 
 | Version | Milestone |
 |---------|-----------|
-| v0.1.0  | Project foundation (this PR) |
-| v0.2.0  | Pomodoro timer (countdown, sessions) |
-| v0.3.0  | Settings (persist durations, theme) |
-| v0.4.0  | Task list |
-| v0.5.0  | Statistics (session history charts) |
-| v0.6.0  | Gamification (streaks, achievements) |
-| v0.9.0  | Screenshots, store listing |
-| v1.0.0  | Production release |
+| v0.1.0 ✅ | Project Foundation — Flutter setup, navigation shell, theming |
+| v0.2.0 🔄 | Core Timer Engine — Timer countdown, phase transitions, play/pause/reset/skip, cycle tracking |
+| v0.3.0 | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
+| v0.4.0 | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
+| v0.5.0 | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
+| v0.6.0 | Task Tracking — Task binding, task list, tags, task-filtered statistics |
+| v0.7.0 | Gamification — Plant rewards, garden collection, streaks, unlock progression |
+| v0.8.0 | Platform Hardening — App icons, splash screen, PWA, responsive layout, accessibility |
+| v0.9.0 | Polish & Bug Bash — Animations, onboarding, edge cases, integration tests, final polish |
+| v1.0.0-RC | Release Candidate — Version bump, changelog, release artifacts, beta testing |
