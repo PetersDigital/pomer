@@ -17,6 +17,7 @@ add_executable(${BINARY_NAME} WIN32
   "${FLUTTER_TOOL_ENVIRONMENT}"
   "Runner.rc"
   "runner.exe.manifest"
+  "../flutter/generated_plugin_registrant.cc"
 )
 
 apply_standard_settings(${BINARY_NAME})
