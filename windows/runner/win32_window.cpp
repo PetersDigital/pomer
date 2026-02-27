@@ -76,6 +76,9 @@ class WindowClassRegistrar {
 
 WindowClassRegistrar* WindowClassRegistrar::instance_ = nullptr;
 
+// Initialize the static member.
+int Win32Window::g_active_window_count = 0;
+
 const wchar_t* WindowClassRegistrar::GetWindowClass() {
   if (!class_registered_) {
     WNDCLASS window_class{};
@@ -262,23 +265,18 @@ void Win32Window::SetQuitOnClose(bool quit_on_close) {
 }
 
 bool Win32Window::UpdateTheme(HWND const window) {
-  constexpr bool kCheckAncestors = true;
-  const bool high_contrast = SystemParametersInfo(SPI_GETHIGHCONTRAST, 0,
-                                                   nullptr, 0);
-
-  // Get App theme
   DWORD use_light_mode;
   DWORD use_light_mode_size = sizeof(use_light_mode);
-  LSTATUS result = RegGetValue(HKEY_CURRENT_USER, kGetPreferredBrightnessRegKey,
-                               kGetPreferredBrightnessRegValue,
-                               RRF_RT_REG_DWORD, nullptr, &use_light_mode,
-                               &use_light_mode_size);
+  const LSTATUS result =
+      RegGetValue(HKEY_CURRENT_USER, kGetPreferredBrightnessRegKey,
+                  kGetPreferredBrightnessRegValue, RRF_RT_REG_DWORD, nullptr,
+                  &use_light_mode, &use_light_mode_size);
 
-  bool apply = false;
-  if (result == ERROR_SUCCESS && !high_contrast) {
-    BOOL mode = use_light_mode != 1;
-    apply = DwmSetWindowAttribute(window, kDwmwEnableImmersiveDarkMode,
-                                  &mode, sizeof(BOOL)) == S_OK;
+  if (result == ERROR_SUCCESS) {
+    const BOOL enable_dark_mode = use_light_mode == 0;
+    DwmSetWindowAttribute(window, kDwmwEnableImmersiveDarkMode,
+                          &enable_dark_mode, sizeof(enable_dark_mode));
+    return true;
   }
-  return apply;
+  return false;
 }
