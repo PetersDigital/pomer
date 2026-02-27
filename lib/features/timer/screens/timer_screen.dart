@@ -12,7 +12,7 @@ class TimerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timerState = ref.watch(timerProvider);
+    final timerState = ref.watch(timerNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final color = phaseColor(timerState.phase, colorScheme);
 
