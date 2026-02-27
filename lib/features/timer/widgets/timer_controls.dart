@@ -8,8 +8,8 @@ class TimerControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timerState = ref.watch(timerProvider);
-    final notifier = ref.read(timerProvider.notifier);
+    final timerState = ref.watch(timerNotifierProvider);
+    final notifier = ref.read(timerNotifierProvider.notifier);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
