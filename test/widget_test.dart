@@ -41,6 +41,6 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Coming in v0.2.0'), findsOneWidget);
+    expect(find.text('25:00'), findsOneWidget);
   });
 }
