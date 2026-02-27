@@ -21,8 +21,8 @@ set(FLUTTER_LIBRARY "${EPHEMERAL_DIR}/flutter_windows.dll")
 # Published to parent scope for install step.
 set(FLUTTER_LIBRARY ${FLUTTER_LIBRARY} PARENT_SCOPE)
 set(FLUTTER_ICU_DATA_FILE "${EPHEMERAL_DIR}/icudtl.dat" PARENT_SCOPE)
-set(PROJECT_BUILD_DIR "${PROJECT_BINARY_DIR}/" PARENT_SCOPE)
-set(AOT_LIBRARY "${PROJECT_BINARY_DIR}/windows/app.so" PARENT_SCOPE)
+set(PROJECT_BUILD_DIR "${PROJECT_DIR}/build/" PARENT_SCOPE)
+set(AOT_LIBRARY "${PROJECT_DIR}/build/windows/app.so" PARENT_SCOPE)
 
 list(APPEND FLUTTER_LIBRARY_HEADERS
   "flutter_export.h"
@@ -42,35 +42,20 @@ add_dependencies(flutter flutter_assemble)
 # === Wrapper ===
 list(APPEND CPP_WRAPPER_SOURCES_CORE
   "core_implementations.cc"
-  "plugin_registrar.cc"
   "standard_codec.cc"
 )
-list(TRANSFORM CPP_WRAPPER_SOURCES_CORE PREPEND "${WRAPPER_ROOT}/library/")
+list(TRANSFORM CPP_WRAPPER_SOURCES_CORE PREPEND "${WRAPPER_ROOT}/")
 list(APPEND CPP_WRAPPER_SOURCES_PLUGIN
-  "flutter_plugin_registrar.cc"
+  "plugin_registrar.cc"
 )
-list(TRANSFORM CPP_WRAPPER_SOURCES_PLUGIN PREPEND "${WRAPPER_ROOT}/library/")
+list(TRANSFORM CPP_WRAPPER_SOURCES_PLUGIN PREPEND "${WRAPPER_ROOT}/")
 list(APPEND CPP_WRAPPER_SOURCES_APP
   "flutter_engine.cc"
   "flutter_view_controller.cc"
 )
-list(TRANSFORM CPP_WRAPPER_SOURCES_APP PREPEND "${WRAPPER_ROOT}/library/")
+list(TRANSFORM CPP_WRAPPER_SOURCES_APP PREPEND "${WRAPPER_ROOT}/")
 
-add_library(flutter_wrapper_app STATIC
-  ${CPP_WRAPPER_SOURCES_CORE}
-  ${CPP_WRAPPER_SOURCES_APP}
-)
-apply_standard_settings(flutter_wrapper_app)
-set_target_properties(flutter_wrapper_app PROPERTIES
-  POSITION_INDEPENDENT_CODE ON)
-set_target_properties(flutter_wrapper_app PROPERTIES
-  CXX_VISIBILITY_PRESET hidden)
-target_link_libraries(flutter_wrapper_app PUBLIC flutter)
-target_include_directories(flutter_wrapper_app PUBLIC
-  "${WRAPPER_ROOT}/include"
-)
-add_dependencies(flutter_wrapper_app flutter_assemble)
-
+# Wrapper sources needed for a plugin.
 add_library(flutter_wrapper_plugin STATIC
   ${CPP_WRAPPER_SOURCES_CORE}
   ${CPP_WRAPPER_SOURCES_PLUGIN}
@@ -86,22 +71,31 @@ target_include_directories(flutter_wrapper_plugin PUBLIC
 )
 add_dependencies(flutter_wrapper_plugin flutter_assemble)
 
+# Wrapper sources needed for the runner.
+add_library(flutter_wrapper_app STATIC
+  ${CPP_WRAPPER_SOURCES_CORE}
+  ${CPP_WRAPPER_SOURCES_APP}
+)
+apply_standard_settings(flutter_wrapper_app)
+target_link_libraries(flutter_wrapper_app PUBLIC flutter)
+target_include_directories(flutter_wrapper_app PUBLIC
+  "${WRAPPER_ROOT}/include"
+)
+add_dependencies(flutter_wrapper_app flutter_assemble)
+
 # === Flutter tool backend ===
 # _phony_ is a non-existent file to force this command to run every time,
 # since currently there's no way to get a full input/output list from the
 # flutter tool.
 set(PHONY_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/_phony_")
 set_source_files_properties("${PHONY_OUTPUT}" PROPERTIES SYMBOLIC TRUE)
-add_custom_command(OUTPUT ${FLUTTER_LIBRARY} ${FLUTTER_LIBRARY_HEADERS}
-  icudtl.dat ${PHONY_OUTPUT}
+add_custom_command(
+  OUTPUT ${FLUTTER_LIBRARY} ${FLUTTER_LIBRARY_HEADERS}
+    ${CPP_WRAPPER_SOURCES_CORE} ${CPP_WRAPPER_SOURCES_PLUGIN}
+    ${CPP_WRAPPER_SOURCES_APP}
+    ${PHONY_OUTPUT}
   COMMAND ${CMAKE_COMMAND} -E env
-    FLUTTER_ROOT="${FLUTTER_ROOT}"
-    FLUTTER_EPHEMERAL_DIR="${EPHEMERAL_DIR}"
-    PROJECT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/.."
-    FLUTTER_TARGET_PLATFORM="${FLUTTER_TARGET_PLATFORM}"
-    "${FLUTTER_TOOL_ENVIRONMENT}"
-    "${CMAKE_COMMAND}" -P "${EPHEMERAL_DIR}/flutter_export_environment.cmake"
-    &&
+    ${FLUTTER_TOOL_ENVIRONMENT}
     "${FLUTTER_ROOT}/packages/flutter_tools/bin/tool_backend.bat"
       ${FLUTTER_TARGET_PLATFORM} $<CONFIG>
   VERBATIM
@@ -109,5 +103,7 @@ add_custom_command(OUTPUT ${FLUTTER_LIBRARY} ${FLUTTER_LIBRARY_HEADERS}
 add_custom_target(flutter_assemble DEPENDS
   "${FLUTTER_LIBRARY}"
   ${FLUTTER_LIBRARY_HEADERS}
-  "icudtl.dat"
+  ${CPP_WRAPPER_SOURCES_CORE}
+  ${CPP_WRAPPER_SOURCES_PLUGIN}
+  ${CPP_WRAPPER_SOURCES_APP}
 )

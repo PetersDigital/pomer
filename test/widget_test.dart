@@ -22,9 +22,19 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Timer'), findsOneWidget);
-    expect(find.text('Stats'), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
+    final navBar = find.byType(NavigationBar);
+    expect(
+      find.descendant(of: navBar, matching: find.text('Timer')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: navBar, matching: find.text('Stats')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: navBar, matching: find.text('Settings')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Timer screen is shown by default', (tester) async {
