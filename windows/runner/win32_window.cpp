@@ -12,7 +12,13 @@ namespace {
 /// Redefined in case the developer's machine has a Windows SDK older than
 /// version 10.0.22000.0.
 /// See: https://docs.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
-constexpr DWMWINDOWATTRIBUTE kDwmwEnableImmersiveDarkMode = DWMWA_USE_IMMERSIVE_DARK_MODE;
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+constexpr DWMWINDOWATTRIBUTE kDwmwEnableImmersiveDarkMode =
+    static_cast<DWMWINDOWATTRIBUTE>(20);
+#else
+constexpr DWMWINDOWATTRIBUTE kDwmwEnableImmersiveDarkMode =
+    DWMWA_USE_IMMERSIVE_DARK_MODE;
+#endif
 
 /// Registry key for app theme preference.
 ///

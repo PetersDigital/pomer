@@ -11,10 +11,10 @@
 void CreateAndAttachConsole() {
   if (::AllocConsole()) {
     FILE *unused;
-    if (freopen_s(&unused, "CONOUT$", "w", stdout)) {
+    if (freopen_s(&unused, "CONOUT$", "w", stdout) == 0) {
       _dup2(_fileno(stdout), 1);
     }
-    if (freopen_s(&unused, "CONOUT$", "w", stderr)) {
+    if (freopen_s(&unused, "CONOUT$", "w", stderr) == 0) {
       _dup2(_fileno(stdout), 2);
     }
     std::ios::sync_with_stdio();
@@ -46,10 +46,13 @@ std::string Utf8FromUtf16(const wchar_t* utf16_string) {
   if (utf16_string == nullptr) {
     return std::string();
   }
-  unsigned int target_length = ::WideCharToMultiByte(
+  int code_point_count = ::WideCharToMultiByte(
       CP_UTF8, WC_ERR_INVALID_CHARS, utf16_string,
-      -1, nullptr, 0, nullptr, nullptr)
-    - 1; // remove the trailing null character
+      -1, nullptr, 0, nullptr, nullptr);
+  if (code_point_count <= 0) {
+    return std::string();
+  }
+  unsigned int target_length = code_point_count - 1; // remove the trailing null character
   int input_length = (int)wcslen(utf16_string);
   std::string utf8_string;
   utf8_string.resize(target_length);

@@ -68,10 +68,13 @@ class AppShell extends StatelessWidget {
     switch (index) {
       case 1:
         context.go('/stats');
+        return;
       case 2:
         context.go('/settings');
+        return;
       default:
         context.go('/');
+        return;
     }
   }
 
