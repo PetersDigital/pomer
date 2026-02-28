@@ -59,10 +59,7 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void skip() {
-    _timer?.cancel();
-    _timer = null;
-    _targetTime = null;
-    state = _nextPhaseState(state);
+    _handlePhaseTransition();
   }
 
   void _onTick() {
@@ -81,14 +78,27 @@ class TimerNotifier extends _$TimerNotifier {
     }
 
     // remaining <= 0 → transition to next phase.
+    _handlePhaseTransition();
+  }
+
+  void _handlePhaseTransition() {
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
 
-    state = _nextPhaseState(state);
+    final settingsAsync = ref.read(settingsNotifierProvider);
+    final focusDuration = settingsAsync.valueOrNull?.focusDuration ?? AppConstants.defaultFocusDuration;
+    final shortBreakDuration = settingsAsync.valueOrNull?.shortBreakDuration ?? AppConstants.defaultShortBreakDuration;
+    final longBreakDuration = settingsAsync.valueOrNull?.longBreakDuration ?? AppConstants.defaultLongBreakDuration;
+
+    state = _nextPhaseState(
+      current: state,
+      focusDuration: focusDuration,
+      shortBreakDuration: shortBreakDuration,
+      longBreakDuration: longBreakDuration,
+    );
 
     // Auto-start next phase logic
-    final settingsAsync = ref.read(settingsNotifierProvider);
     if (settingsAsync.hasValue) {
       final settings = settingsAsync.value!;
       if ((state.phase == TimerPhase.shortBreak || state.phase == TimerPhase.longBreak) && settings.autoStartBreaks) {
@@ -99,12 +109,12 @@ class TimerNotifier extends _$TimerNotifier {
     }
   }
 
-  TimerState _nextPhaseState(TimerState current) {
-    final settingsAsync = ref.read(settingsNotifierProvider);
-    final focusDuration = settingsAsync.valueOrNull?.focusDuration ?? AppConstants.defaultFocusDuration;
-    final shortBreakDuration = settingsAsync.valueOrNull?.shortBreakDuration ?? AppConstants.defaultShortBreakDuration;
-    final longBreakDuration = settingsAsync.valueOrNull?.longBreakDuration ?? AppConstants.defaultLongBreakDuration;
-
+  TimerState _nextPhaseState({
+    required TimerState current,
+    required int focusDuration,
+    required int shortBreakDuration,
+    required int longBreakDuration,
+  }) {
     switch (current.phase) {
       case TimerPhase.focus:
         final newCycles = current.completedCycles + 1;
