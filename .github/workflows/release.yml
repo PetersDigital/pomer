@@ -1,0 +1,156 @@
+name: Release Build & Publish
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+
+      # Enforces Section 4.3 of AGENTS.md (Lints)
+      - name: Static Analysis
+        run: flutter analyze --fatal-infos
+
+      - name: Unit Tests
+        run: flutter test
+
+  build-android:
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build apk --release
+
+      - name: Rename APK
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/pomer-${TAG}-android.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/pomer-*-android.apk
+
+  build-web:
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build web
+
+      - name: Zip Web Build
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          cd build/web
+          zip -r ../../pomer-${TAG}-web.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: pomer-*-web.zip
+
+  build-web-wasm:
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build web --wasm
+
+      - name: Zip Web WASM Build
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          cd build/web
+          zip -r ../../pomer-${TAG}-web-wasm.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-wasm-build
+          path: pomer-*-web-wasm.zip
+
+  build-windows:
+    runs-on: windows-latest
+    needs: analyze-and-test
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter build windows
+
+      - name: Zip Windows Build
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath "pomer-${tag}-windows.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: pomer-*-windows.zip
+
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: [build-android, build-web, build-web-wasm, build-windows]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            pomer-*-android.apk
+            pomer-*-web.zip
+            pomer-*-web-wasm.zip
+            pomer-*-windows.zip
+
+      - name: Notify Telegram
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
+          MESSAGE="🚀 Release ${TAG} published!%0A%0ADownload: ${RELEASE_URL}"
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
+               -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+               -d text="$MESSAGE"
