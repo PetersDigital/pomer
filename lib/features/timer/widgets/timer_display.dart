@@ -66,7 +66,7 @@ class TimerDisplay extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
         Text(
-          'Session ${timerState.completedCycles + 1} of '
+          'Session ${timerState.phase == TimerPhase.focus ? timerState.completedCycles + 1 : timerState.completedCycles} of '
           '${AppConstants.defaultCyclesBeforeLongBreak}',
           style: textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,

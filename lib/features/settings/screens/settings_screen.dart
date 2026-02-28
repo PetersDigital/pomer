@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pomer/core/constants/app_constants.dart';
 import 'package:pomer/features/settings/models/settings_state.dart';
 import 'package:pomer/features/settings/providers/settings_provider.dart';
 
@@ -25,6 +26,16 @@ class SettingsScreen extends ConsumerWidget {
             _buildTogglesSection(context, ref, settings),
             const Divider(),
             _buildAppearanceSection(context, ref, settings),
+            const SizedBox(height: 32),
+            Center(
+              child: Text(
+                'Version ${AppConstants.appVersion}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ),
+            const SizedBox(height: 16),
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
