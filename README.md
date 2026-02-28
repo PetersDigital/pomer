@@ -17,8 +17,8 @@ Pomer is a clean, Material 3 Pomodoro timer app designed to help you stay focuse
 | Version | Milestone |
 |---------|-----------|
 | **v0.1.0** ✅ | Project foundation — Flutter setup, navigation shell, theming |
-| **v0.2.0** 🔄 | Core Timer Engine — Timer countdown, phase transitions, play/pause/reset/skip, cycle tracking |
-| v0.3.0 | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
+| **v0.2.0** ✅ | Core Timer Engine — Timer countdown, phase transitions, play/pause/reset/skip, cycle tracking |
+| **v0.3.0** 🔄 | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
 | v0.4.0 | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
 | v0.5.0 | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
 | v0.6.0 | Task Tracking — Task binding, task list, tags, task-filtered statistics |
