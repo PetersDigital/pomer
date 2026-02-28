@@ -10,20 +10,41 @@ part 'settings_provider.g.dart';
 class SettingsNotifier extends _$SettingsNotifier {
   final _prefs = SharedPreferencesAsync();
 
+  // Keys
+  static const String _keyFocusDuration = 'focusDuration';
+  static const String _keyShortBreakDuration = 'shortBreakDuration';
+  static const String _keyLongBreakDuration = 'longBreakDuration';
+  static const String _keyAutoStartBreaks = 'autoStartBreaks';
+  static const String _keyAutoStartPomodoros = 'autoStartPomodoros';
+  static const String _keyKeepScreenOn = 'keepScreenOn';
+  static const String _keyThemeMode = 'themeMode';
+  static const String _keySelectedPreset = 'selectedPreset';
+
   @override
   Future<SettingsState> build() async {
     return _loadSettings();
   }
 
   Future<SettingsState> _loadSettings() async {
-    final focus = await _prefs.getInt('focusDuration') ?? AppConstants.defaultFocusDuration;
-    final shortBreak = await _prefs.getInt('shortBreakDuration') ?? AppConstants.defaultShortBreakDuration;
-    final longBreak = await _prefs.getInt('longBreakDuration') ?? AppConstants.defaultLongBreakDuration;
-    final autoStartBreaks = await _prefs.getBool('autoStartBreaks') ?? false;
-    final autoStartPomodoros = await _prefs.getBool('autoStartPomodoros') ?? false;
-    final keepScreenOn = await _prefs.getBool('keepScreenOn') ?? false;
-    final themeIndex = await _prefs.getInt('themeMode') ?? ThemeMode.system.index;
-    final presetIndex = await _prefs.getInt('selectedPreset') ?? TimerPreset.classic.index;
+    final results = await Future.wait([
+      _prefs.getInt(_keyFocusDuration),
+      _prefs.getInt(_keyShortBreakDuration),
+      _prefs.getInt(_keyLongBreakDuration),
+      _prefs.getBool(_keyAutoStartBreaks),
+      _prefs.getBool(_keyAutoStartPomodoros),
+      _prefs.getBool(_keyKeepScreenOn),
+      _prefs.getInt(_keyThemeMode),
+      _prefs.getInt(_keySelectedPreset),
+    ]);
+
+    final focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
+    final shortBreak = results[1] as int? ?? AppConstants.defaultShortBreakDuration;
+    final longBreak = results[2] as int? ?? AppConstants.defaultLongBreakDuration;
+    final autoStartBreaks = results[3] as bool? ?? false;
+    final autoStartPomodoros = results[4] as bool? ?? false;
+    final keepScreenOn = results[5] as bool? ?? false;
+    final themeIndex = results[6] as int? ?? ThemeMode.system.index;
+    final presetIndex = results[7] as int? ?? TimerPreset.classic.index;
 
     return SettingsState(
       focusDuration: focus,
@@ -43,10 +64,12 @@ class SettingsNotifier extends _$SettingsNotifier {
     required int longBreak,
     required TimerPreset preset,
   }) async {
-    await _prefs.setInt('focusDuration', focus);
-    await _prefs.setInt('shortBreakDuration', shortBreak);
-    await _prefs.setInt('longBreakDuration', longBreak);
-    await _prefs.setInt('selectedPreset', preset.index);
+    await Future.wait([
+      _prefs.setInt(_keyFocusDuration, focus),
+      _prefs.setInt(_keyShortBreakDuration, shortBreak),
+      _prefs.setInt(_keyLongBreakDuration, longBreak),
+      _prefs.setInt(_keySelectedPreset, preset.index),
+    ]);
 
     state = AsyncData(
       state.value!.copyWith(
@@ -68,29 +91,29 @@ class SettingsNotifier extends _$SettingsNotifier {
         break;
       case TimerPreset.custom:
         // Do nothing for durations, just update the preset
-        await _prefs.setInt('selectedPreset', preset.index);
+        await _prefs.setInt(_keySelectedPreset, preset.index);
         state = AsyncData(state.value!.copyWith(selectedPreset: preset));
         break;
     }
   }
 
   Future<void> toggleAutoStartBreaks(bool value) async {
-    await _prefs.setBool('autoStartBreaks', value);
+    await _prefs.setBool(_keyAutoStartBreaks, value);
     state = AsyncData(state.value!.copyWith(autoStartBreaks: value));
   }
 
   Future<void> toggleAutoStartPomodoros(bool value) async {
-    await _prefs.setBool('autoStartPomodoros', value);
+    await _prefs.setBool(_keyAutoStartPomodoros, value);
     state = AsyncData(state.value!.copyWith(autoStartPomodoros: value));
   }
 
   Future<void> toggleKeepScreenOn(bool value) async {
-    await _prefs.setBool('keepScreenOn', value);
+    await _prefs.setBool(_keyKeepScreenOn, value);
     state = AsyncData(state.value!.copyWith(keepScreenOn: value));
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
-    await _prefs.setInt('themeMode', mode.index);
+    await _prefs.setInt(_keyThemeMode, mode.index);
     state = AsyncData(state.value!.copyWith(themeMode: mode));
   }
 }

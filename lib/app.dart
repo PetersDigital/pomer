@@ -44,11 +44,7 @@ class App extends ConsumerWidget {
     ref.listen(settingsNotifierProvider, (previous, next) {
       if (next.hasValue) {
         final keepScreenOn = next.value!.keepScreenOn;
-        if (keepScreenOn) {
-          WakelockPlus.enable();
-        } else {
-          WakelockPlus.disable();
-        }
+        WakelockPlus.toggle(enable: keepScreenOn);
       }
     });
 
