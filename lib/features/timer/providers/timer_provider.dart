@@ -19,14 +19,17 @@ class TimerNotifier extends _$TimerNotifier {
     });
 
     ref.listen(settingsNotifierProvider, (previous, next) {
-      if (next.hasValue && state.status == TimerStatus.idle && state.completedCycles == 0) {
-         final focusDuration = next.value!.focusDuration * 60;
-         if (state.totalSeconds != focusDuration) {
-           state = state.copyWith(
-             totalSeconds: focusDuration,
-             remainingSeconds: focusDuration,
-           );
-         }
+      if (next.hasValue &&
+          state.status == TimerStatus.idle &&
+          state.completedCycles == 0 &&
+          state.phase == TimerPhase.focus) {
+        final focusDuration = next.value!.focusDuration * 60;
+        if (state.totalSeconds != focusDuration) {
+          state = state.copyWith(
+            totalSeconds: focusDuration,
+            remainingSeconds: focusDuration,
+          );
+        }
       }
     });
 
