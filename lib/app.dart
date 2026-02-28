@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:wakelock_plus/wakelock_plus.dart';
+
 import 'core/theme/app_theme.dart';
+import 'features/settings/providers/settings_provider.dart';
 import 'features/settings/screens/settings_screen.dart';
 import 'features/statistics/screens/statistics_screen.dart';
 import 'features/timer/screens/timer_screen.dart';
-
-/// Provider that controls the app-wide [ThemeMode], defaulting to system.
-final themeModeProvider = StateProvider<ThemeMode>(
-  (ref) => ThemeMode.system,
-);
 
 final _router = GoRouter(
   routes: [
@@ -40,12 +38,25 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    final settingsAsync = ref.watch(settingsNotifierProvider);
+
+    // Listen to settings to update wakelock
+    ref.listen(settingsNotifierProvider, (previous, next) {
+      if (next.hasValue) {
+        final keepScreenOn = next.value!.keepScreenOn;
+        if (keepScreenOn) {
+          WakelockPlus.enable();
+        } else {
+          WakelockPlus.disable();
+        }
+      }
+    });
+
     return MaterialApp.router(
       title: 'Pomer',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
+      themeMode: settingsAsync.valueOrNull?.themeMode ?? ThemeMode.system,
       routerConfig: _router,
     );
   }
