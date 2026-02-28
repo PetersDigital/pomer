@@ -86,7 +86,7 @@ void main() {
       notifier.skip();
       final state = container.read(timerNotifierProvider);
       expect(state.phase, TimerPhase.longBreak);
-      expect(state.completedCycles, 0);
+      expect(state.completedCycles, 4);
     });
 
     test('skip() on shortBreak advances to focus', () {

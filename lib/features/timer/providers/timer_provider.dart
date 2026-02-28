@@ -58,7 +58,14 @@ class TimerNotifier extends _$TimerNotifier {
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
-    state = TimerState.initial();
+
+    final settingsAsync = ref.read(settingsNotifierProvider);
+    final focusDuration = settingsAsync.valueOrNull?.focusDuration ?? AppConstants.defaultFocusDuration;
+
+    state = TimerState.initial().copyWith(
+      totalSeconds: focusDuration * 60,
+      remainingSeconds: focusDuration * 60,
+    );
   }
 
   void skip() {
@@ -128,7 +135,7 @@ class TimerNotifier extends _$TimerNotifier {
             status: TimerStatus.idle,
             totalSeconds: longBreakDuration * 60,
             remainingSeconds: longBreakDuration * 60,
-            completedCycles: 0,
+            completedCycles: newCycles,
             totalSessionsCompleted: newTotal,
           );
         }
@@ -141,12 +148,19 @@ class TimerNotifier extends _$TimerNotifier {
           totalSessionsCompleted: newTotal,
         );
       case TimerPhase.shortBreak:
+        return current.copyWith(
+          phase: TimerPhase.focus,
+          status: TimerStatus.idle,
+          totalSeconds: focusDuration * 60,
+          remainingSeconds: focusDuration * 60,
+        );
       case TimerPhase.longBreak:
         return current.copyWith(
           phase: TimerPhase.focus,
           status: TimerStatus.idle,
           totalSeconds: focusDuration * 60,
           remainingSeconds: focusDuration * 60,
+          completedCycles: 0,
         );
     }
   }
