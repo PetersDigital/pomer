@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pomer/core/constants/app_constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pomer/features/settings/models/settings_state.dart';
@@ -15,9 +16,9 @@ class SettingsNotifier extends _$SettingsNotifier {
   }
 
   Future<SettingsState> _loadSettings() async {
-    final focus = await _prefs.getInt('focusDuration') ?? 25;
-    final shortBreak = await _prefs.getInt('shortBreakDuration') ?? 5;
-    final longBreak = await _prefs.getInt('longBreakDuration') ?? 15;
+    final focus = await _prefs.getInt('focusDuration') ?? AppConstants.defaultFocusDuration;
+    final shortBreak = await _prefs.getInt('shortBreakDuration') ?? AppConstants.defaultShortBreakDuration;
+    final longBreak = await _prefs.getInt('longBreakDuration') ?? AppConstants.defaultLongBreakDuration;
     final autoStartBreaks = await _prefs.getBool('autoStartBreaks') ?? false;
     final autoStartPomodoros = await _prefs.getBool('autoStartPomodoros') ?? false;
     final keepScreenOn = await _prefs.getBool('keepScreenOn') ?? false;
