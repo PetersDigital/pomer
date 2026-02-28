@@ -17,6 +17,19 @@ class TimerNotifier extends _$TimerNotifier {
     ref.onDispose(() {
       _timer?.cancel();
     });
+
+    ref.listen(settingsNotifierProvider, (previous, next) {
+      if (next.hasValue && state.status == TimerStatus.idle && state.completedCycles == 0) {
+         final focusDuration = next.value!.focusDuration * 60;
+         if (state.totalSeconds != focusDuration) {
+           state = state.copyWith(
+             totalSeconds: focusDuration,
+             remainingSeconds: focusDuration,
+           );
+         }
+      }
+    });
+
     return TimerState.initial();
   }
 
