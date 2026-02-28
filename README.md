@@ -17,8 +17,8 @@ Pomer is a clean, Material 3 Pomodoro timer app designed to help you stay focuse
 | Version | Milestone |
 |---------|-----------|
 | **v0.1.0** ✅ | Project foundation — Flutter setup, navigation shell, theming |
-| **v0.2.0** 🔄 | Core Timer Engine — Timer countdown, phase transitions, play/pause/reset/skip, cycle tracking |
-| v0.3.0 | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
+| **v0.2.0** ✅ | Core Timer Engine — Timer countdown, phase transitions, play/pause/reset/skip, cycle tracking |
+| **v0.3.0** ✅ | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
 | v0.4.0 | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
 | v0.5.0 | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
 | v0.6.0 | Task Tracking — Task binding, task list, tags, task-filtered statistics |
@@ -82,6 +82,20 @@ flutter build web
 flutter build windows
 ```
 
+### Clean Build
+If you encounter caching issues, generated file conflicts, or stale dependencies, perform a clean build:
+
+```bash
+# Clean the flutter build cache
+flutter clean
+
+# Re-fetch dependencies
+flutter pub get
+
+# Re-generate Riverpod provider code
+dart run build_runner build --delete-conflicting-outputs
+```
+
 ### Running Tests
 
 ```bash
@@ -93,6 +107,15 @@ flutter test
 ```bash
 flutter analyze --fatal-infos
 ```
+
+---
+
+## Future Ideas (Post v1.0.0)
+
+> **Note:** The following features are part of an ideaboard and are *not guaranteed* to be implemented. They represent potential paths for extending the app after the core `v1.0.0` release.
+
+- **Session Target Configurations:** A feature allowing users to set a specific target number of full pomodoro sessions (cycles) to complete per day.
+- *(More ideas will be added here as the project evolves)*
 
 ---
 

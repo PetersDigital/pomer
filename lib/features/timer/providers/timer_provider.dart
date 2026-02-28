@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pomer/core/constants/app_constants.dart';
+import 'package:pomer/features/settings/providers/settings_provider.dart';
 import 'package:pomer/features/timer/models/timer_state.dart';
 
 part 'timer_provider.g.dart';
@@ -16,6 +17,22 @@ class TimerNotifier extends _$TimerNotifier {
     ref.onDispose(() {
       _timer?.cancel();
     });
+
+    ref.listen(settingsNotifierProvider, (previous, next) {
+      if (next.hasValue &&
+          state.status == TimerStatus.idle &&
+          state.completedCycles == 0 &&
+          state.phase == TimerPhase.focus) {
+        final focusDuration = next.value!.focusDuration * 60;
+        if (state.totalSeconds != focusDuration) {
+          state = state.copyWith(
+            totalSeconds: focusDuration,
+            remainingSeconds: focusDuration,
+          );
+        }
+      }
+    });
+
     return TimerState.initial();
   }
 
@@ -41,14 +58,18 @@ class TimerNotifier extends _$TimerNotifier {
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
-    state = TimerState.initial();
+
+    final settingsAsync = ref.read(settingsNotifierProvider);
+    final focusDuration = settingsAsync.valueOrNull?.focusDuration ?? AppConstants.defaultFocusDuration;
+
+    state = TimerState.initial().copyWith(
+      totalSeconds: focusDuration * 60,
+      remainingSeconds: focusDuration * 60,
+    );
   }
 
   void skip() {
-    _timer?.cancel();
-    _timer = null;
-    _targetTime = null;
-    state = _nextPhaseState(state);
+    _handlePhaseTransition();
   }
 
   void _onTick() {
@@ -67,13 +88,43 @@ class TimerNotifier extends _$TimerNotifier {
     }
 
     // remaining <= 0 → transition to next phase.
+    _handlePhaseTransition();
+  }
+
+  void _handlePhaseTransition() {
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
-    state = _nextPhaseState(state);
+
+    final settingsAsync = ref.read(settingsNotifierProvider);
+    final focusDuration = settingsAsync.valueOrNull?.focusDuration ?? AppConstants.defaultFocusDuration;
+    final shortBreakDuration = settingsAsync.valueOrNull?.shortBreakDuration ?? AppConstants.defaultShortBreakDuration;
+    final longBreakDuration = settingsAsync.valueOrNull?.longBreakDuration ?? AppConstants.defaultLongBreakDuration;
+
+    state = _nextPhaseState(
+      current: state,
+      focusDuration: focusDuration,
+      shortBreakDuration: shortBreakDuration,
+      longBreakDuration: longBreakDuration,
+    );
+
+    // Auto-start next phase logic
+    if (settingsAsync.hasValue) {
+      final settings = settingsAsync.value!;
+      if ((state.phase == TimerPhase.shortBreak || state.phase == TimerPhase.longBreak) && settings.autoStartBreaks) {
+        start();
+      } else if (state.phase == TimerPhase.focus && settings.autoStartPomodoros) {
+        start();
+      }
+    }
   }
 
-  TimerState _nextPhaseState(TimerState current) {
+  TimerState _nextPhaseState({
+    required TimerState current,
+    required int focusDuration,
+    required int shortBreakDuration,
+    required int longBreakDuration,
+  }) {
     switch (current.phase) {
       case TimerPhase.focus:
         final newCycles = current.completedCycles + 1;
@@ -82,27 +133,34 @@ class TimerNotifier extends _$TimerNotifier {
           return current.copyWith(
             phase: TimerPhase.longBreak,
             status: TimerStatus.idle,
-            totalSeconds: AppConstants.defaultLongBreakDuration * 60,
-            remainingSeconds: AppConstants.defaultLongBreakDuration * 60,
-            completedCycles: 0,
+            totalSeconds: longBreakDuration * 60,
+            remainingSeconds: longBreakDuration * 60,
+            completedCycles: newCycles,
             totalSessionsCompleted: newTotal,
           );
         }
         return current.copyWith(
           phase: TimerPhase.shortBreak,
           status: TimerStatus.idle,
-          totalSeconds: AppConstants.defaultShortBreakDuration * 60,
-          remainingSeconds: AppConstants.defaultShortBreakDuration * 60,
+          totalSeconds: shortBreakDuration * 60,
+          remainingSeconds: shortBreakDuration * 60,
           completedCycles: newCycles,
           totalSessionsCompleted: newTotal,
         );
       case TimerPhase.shortBreak:
+        return current.copyWith(
+          phase: TimerPhase.focus,
+          status: TimerStatus.idle,
+          totalSeconds: focusDuration * 60,
+          remainingSeconds: focusDuration * 60,
+        );
       case TimerPhase.longBreak:
         return current.copyWith(
           phase: TimerPhase.focus,
           status: TimerStatus.idle,
-          totalSeconds: AppConstants.defaultFocusDuration * 60,
-          remainingSeconds: AppConstants.defaultFocusDuration * 60,
+          totalSeconds: focusDuration * 60,
+          remainingSeconds: focusDuration * 60,
+          completedCycles: 0,
         );
     }
   }

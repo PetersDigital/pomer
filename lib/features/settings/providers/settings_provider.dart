@@ -1,0 +1,119 @@
+import 'package:flutter/material.dart';
+import 'package:pomer/core/constants/app_constants.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pomer/features/settings/models/settings_state.dart';
+
+part 'settings_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+class SettingsNotifier extends _$SettingsNotifier {
+  final _prefs = SharedPreferencesAsync();
+
+  // Keys
+  static const String _keyFocusDuration = 'focusDuration';
+  static const String _keyShortBreakDuration = 'shortBreakDuration';
+  static const String _keyLongBreakDuration = 'longBreakDuration';
+  static const String _keyAutoStartBreaks = 'autoStartBreaks';
+  static const String _keyAutoStartPomodoros = 'autoStartPomodoros';
+  static const String _keyKeepScreenOn = 'keepScreenOn';
+  static const String _keyThemeMode = 'themeMode';
+  static const String _keySelectedPreset = 'selectedPreset';
+
+  @override
+  Future<SettingsState> build() async {
+    return _loadSettings();
+  }
+
+  Future<SettingsState> _loadSettings() async {
+    final results = await Future.wait([
+      _prefs.getInt(_keyFocusDuration),
+      _prefs.getInt(_keyShortBreakDuration),
+      _prefs.getInt(_keyLongBreakDuration),
+      _prefs.getBool(_keyAutoStartBreaks),
+      _prefs.getBool(_keyAutoStartPomodoros),
+      _prefs.getBool(_keyKeepScreenOn),
+      _prefs.getInt(_keyThemeMode),
+      _prefs.getInt(_keySelectedPreset),
+    ]);
+
+    final focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
+    final shortBreak = results[1] as int? ?? AppConstants.defaultShortBreakDuration;
+    final longBreak = results[2] as int? ?? AppConstants.defaultLongBreakDuration;
+    final autoStartBreaks = results[3] as bool? ?? false;
+    final autoStartPomodoros = results[4] as bool? ?? false;
+    final keepScreenOn = results[5] as bool? ?? false;
+    final themeIndex = results[6] as int? ?? ThemeMode.system.index;
+    final presetIndex = results[7] as int? ?? TimerPreset.classic.index;
+
+    return SettingsState(
+      focusDuration: focus,
+      shortBreakDuration: shortBreak,
+      longBreakDuration: longBreak,
+      autoStartBreaks: autoStartBreaks,
+      autoStartPomodoros: autoStartPomodoros,
+      keepScreenOn: keepScreenOn,
+      themeMode: ThemeMode.values[themeIndex],
+      selectedPreset: TimerPreset.values[presetIndex],
+    );
+  }
+
+  Future<void> updateDurations({
+    required int focus,
+    required int shortBreak,
+    required int longBreak,
+    required TimerPreset preset,
+  }) async {
+    await Future.wait([
+      _prefs.setInt(_keyFocusDuration, focus),
+      _prefs.setInt(_keyShortBreakDuration, shortBreak),
+      _prefs.setInt(_keyLongBreakDuration, longBreak),
+      _prefs.setInt(_keySelectedPreset, preset.index),
+    ]);
+
+    state = AsyncData(
+      state.value!.copyWith(
+        focusDuration: focus,
+        shortBreakDuration: shortBreak,
+        longBreakDuration: longBreak,
+        selectedPreset: preset,
+      ),
+    );
+  }
+
+  Future<void> applyPreset(TimerPreset preset) async {
+    switch (preset) {
+      case TimerPreset.classic:
+        await updateDurations(focus: 25, shortBreak: 5, longBreak: 15, preset: preset);
+        break;
+      case TimerPreset.extended:
+        await updateDurations(focus: 50, shortBreak: 10, longBreak: 30, preset: preset);
+        break;
+      case TimerPreset.custom:
+        // Do nothing for durations, just update the preset
+        await _prefs.setInt(_keySelectedPreset, preset.index);
+        state = AsyncData(state.value!.copyWith(selectedPreset: preset));
+        break;
+    }
+  }
+
+  Future<void> toggleAutoStartBreaks(bool value) async {
+    await _prefs.setBool(_keyAutoStartBreaks, value);
+    state = AsyncData(state.value!.copyWith(autoStartBreaks: value));
+  }
+
+  Future<void> toggleAutoStartPomodoros(bool value) async {
+    await _prefs.setBool(_keyAutoStartPomodoros, value);
+    state = AsyncData(state.value!.copyWith(autoStartPomodoros: value));
+  }
+
+  Future<void> toggleKeepScreenOn(bool value) async {
+    await _prefs.setBool(_keyKeepScreenOn, value);
+    state = AsyncData(state.value!.copyWith(keepScreenOn: value));
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    await _prefs.setInt(_keyThemeMode, mode.index);
+    state = AsyncData(state.value!.copyWith(themeMode: mode));
+  }
+}
