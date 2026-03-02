@@ -222,6 +222,15 @@ class SettingsScreen extends ConsumerWidget {
                 .toggleNotificationsEnabled(val);
           },
         ),
+        SwitchListTile(
+          title: const Text('Use System Notification Sound'),
+          value: settings.useSystemNotificationSound,
+          onChanged: (val) {
+            ref
+                .read(settingsNotifierProvider.notifier)
+                .toggleUseSystemNotificationSound(val);
+          },
+        ),
         ListTile(
           title: const Text('Focus Ambient Track'),
           trailing: DropdownButton<FocusAmbientTrack>(

@@ -76,6 +76,7 @@ class SettingsState {
     required this.keepScreenOn,
     required this.soundEnabled,
     required this.notificationsEnabled,
+    required this.useSystemNotificationSound,
     required this.themeMode,
     required this.selectedPreset,
     required this.focusAmbientTrack,
@@ -91,6 +92,7 @@ class SettingsState {
         keepScreenOn: false,
         soundEnabled: true,
         notificationsEnabled: true,
+        useSystemNotificationSound: false,
         themeMode: ThemeMode.system,
         selectedPreset: TimerPreset.classic,
         focusAmbientTrack: FocusAmbientTrack.stream,
@@ -105,6 +107,7 @@ class SettingsState {
   final bool keepScreenOn;
   final bool soundEnabled;
   final bool notificationsEnabled;
+  final bool useSystemNotificationSound;
   final ThemeMode themeMode;
   final TimerPreset selectedPreset;
   final FocusAmbientTrack focusAmbientTrack;
@@ -119,6 +122,7 @@ class SettingsState {
     bool? keepScreenOn,
     bool? soundEnabled,
     bool? notificationsEnabled,
+    bool? useSystemNotificationSound,
     ThemeMode? themeMode,
     TimerPreset? selectedPreset,
     FocusAmbientTrack? focusAmbientTrack,
@@ -133,6 +137,8 @@ class SettingsState {
       keepScreenOn: keepScreenOn ?? this.keepScreenOn,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      useSystemNotificationSound:
+          useSystemNotificationSound ?? this.useSystemNotificationSound,
       themeMode: themeMode ?? this.themeMode,
       selectedPreset: selectedPreset ?? this.selectedPreset,
       focusAmbientTrack: focusAmbientTrack ?? this.focusAmbientTrack,

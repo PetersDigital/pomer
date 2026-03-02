@@ -21,6 +21,8 @@ class SettingsNotifier extends _$SettingsNotifier {
   static const String _keySelectedPreset = 'selectedPreset';
   static const String _keySoundEnabled = 'soundEnabled';
   static const String _keyNotificationsEnabled = 'notificationsEnabled';
+  static const String _keyUseSystemNotificationSound =
+      'useSystemNotificationSound';
   static const String _keyFocusAmbientTrack = 'focusAmbientTrack';
   static const String _keyLongBreakTrack = 'longBreakTrack';
 
@@ -41,6 +43,7 @@ class SettingsNotifier extends _$SettingsNotifier {
       _prefs.getInt(_keySelectedPreset),
       _prefs.getBool(_keySoundEnabled),
       _prefs.getBool(_keyNotificationsEnabled),
+      _prefs.getBool(_keyUseSystemNotificationSound),
       _prefs.getInt(_keyFocusAmbientTrack),
       _prefs.getInt(_keyLongBreakTrack),
     ]);
@@ -57,10 +60,11 @@ class SettingsNotifier extends _$SettingsNotifier {
     final presetIndex = results[7] as int? ?? TimerPreset.classic.index;
     final soundEnabled = results[8] as bool? ?? true;
     final notificationsEnabled = results[9] as bool? ?? true;
+    final useSystemNotificationSound = results[10] as bool? ?? false;
     final focusAmbientTrackIndex =
-        results[10] as int? ?? FocusAmbientTrack.stream.index;
+        results[11] as int? ?? FocusAmbientTrack.stream.index;
     final longBreakTrackIndex =
-        results[11] as int? ?? LongBreakTrack.easyGoing.index;
+        results[12] as int? ?? LongBreakTrack.easyGoing.index;
     final focusAmbientTrack = focusAmbientTrackIndex >= 0 &&
             focusAmbientTrackIndex < FocusAmbientTrack.values.length
         ? FocusAmbientTrack.values[focusAmbientTrackIndex]
@@ -79,6 +83,7 @@ class SettingsNotifier extends _$SettingsNotifier {
       keepScreenOn: keepScreenOn,
       soundEnabled: soundEnabled,
       notificationsEnabled: notificationsEnabled,
+      useSystemNotificationSound: useSystemNotificationSound,
       themeMode: ThemeMode.values[themeIndex],
       selectedPreset: TimerPreset.values[presetIndex],
       focusAmbientTrack: focusAmbientTrack,
@@ -158,6 +163,13 @@ class SettingsNotifier extends _$SettingsNotifier {
   Future<void> toggleNotificationsEnabled(bool value) async {
     await _prefs.setBool(_keyNotificationsEnabled, value);
     state = AsyncData(state.value!.copyWith(notificationsEnabled: value));
+  }
+
+  Future<void> toggleUseSystemNotificationSound(bool value) async {
+    await _prefs.setBool(_keyUseSystemNotificationSound, value);
+    state = AsyncData(
+      state.value!.copyWith(useSystemNotificationSound: value),
+    );
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

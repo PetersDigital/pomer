@@ -16,6 +16,7 @@ void main() {
       expect(state.keepScreenOn, isFalse);
       expect(state.soundEnabled, isTrue);
       expect(state.notificationsEnabled, isTrue);
+      expect(state.useSystemNotificationSound, isFalse);
       expect(state.themeMode, ThemeMode.system);
       expect(state.selectedPreset, TimerPreset.classic);
       expect(state.focusAmbientTrack, FocusAmbientTrack.stream);
@@ -30,6 +31,7 @@ void main() {
         selectedPreset: TimerPreset.extended,
         focusAmbientTrack: FocusAmbientTrack.wind,
         longBreakTrack: LongBreakTrack.commercialA,
+        useSystemNotificationSound: true,
       );
 
       expect(state.focusDuration, 50);
@@ -40,6 +42,7 @@ void main() {
       expect(state.keepScreenOn, isFalse);
       expect(state.soundEnabled, isTrue);
       expect(state.notificationsEnabled, isTrue);
+      expect(state.useSystemNotificationSound, isTrue);
       expect(state.themeMode, ThemeMode.dark);
       expect(state.selectedPreset, TimerPreset.extended);
       expect(state.focusAmbientTrack, FocusAmbientTrack.wind);
