@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:just_audio/just_audio.dart';
@@ -16,6 +17,11 @@ AudioService audioService(Ref ref) {
 }
 
 class AudioService {
+  static const int _fadeInSteps = 16;
+  static const Duration _fadeInStepDuration = Duration(milliseconds: 125);
+  static const int _fadeOutSteps = 16;
+  static const Duration _fadeOutStepDuration = Duration(milliseconds: 125);
+
   final AudioPlayer _alarmPlayer = AudioPlayer();
   final AudioPlayer _ambientPlayer = AudioPlayer();
   Future<void>? _alarmInitFuture;
@@ -23,6 +29,9 @@ class AudioService {
   bool _alarmReady = false;
   bool _ambientReady = false;
   bool _audioSessionConfigured = false;
+  bool _isDisposed = false;
+  int _ambientOperationToken = 0;
+  String? _currentAmbientAssetPath;
 
   AudioService() {
     _configureAudioSession();
@@ -47,31 +56,28 @@ class AudioService {
     }
 
     _alarmInitFuture ??= () async {
-      await _setPlayerSource(_alarmPlayer, 'assets/audio/alarm_x1.mp3');
+      await _setPlayerSource(_alarmPlayer, 'assets/audio/alarm_x1.ogg');
       _alarmReady = true;
     }();
 
     await _alarmInitFuture;
   }
 
-  Future<void> _ensureAmbientReady() async {
-    if (_ambientReady) {
+  Future<void> _ensureAmbientReady({required String ambientAssetPath}) async {
+    if (_ambientReady && _currentAmbientAssetPath == ambientAssetPath) {
       return;
     }
 
-    _ambientInitFuture ??= () async {
-      await _setPlayerSourceCandidates(
-        _ambientPlayer,
-        const [
-          'assets/audio/ambience_stream_loop.ogg',
-          'assets/audio/ambience_calm_river_loop.ogg',
-        ],
-      );
+    _ambientInitFuture = () async {
+      await _ambientPlayer.stop();
+      await _setPlayerSource(_ambientPlayer, ambientAssetPath);
       await _ambientPlayer.setLoopMode(LoopMode.one);
       _ambientReady = true;
+      _currentAmbientAssetPath = ambientAssetPath;
     }();
 
     await _ambientInitFuture;
+    _ambientInitFuture = null;
   }
 
   Future<void> _setPlayerSource(AudioPlayer player, String assetPath) async {
@@ -106,26 +112,6 @@ class AudioService {
     }
   }
 
-  Future<void> _setPlayerSourceCandidates(
-    AudioPlayer player,
-    List<String> assetPaths,
-  ) async {
-    Object? lastError;
-
-    for (final assetPath in assetPaths) {
-      try {
-        await _setPlayerSource(player, assetPath);
-        return;
-      } catch (error) {
-        lastError = error;
-      }
-    }
-
-    if (lastError != null) {
-      throw lastError;
-    }
-  }
-
   Future<void> playAlarm() async {
     try {
       await _ensureAlarmReady();
@@ -146,9 +132,9 @@ class AudioService {
     await _alarmPlayer.stop();
   }
 
-  Future<void> playAmbient() async {
+  Future<void> playAmbient({required String ambientAssetPath}) async {
     try {
-      await _ensureAmbientReady();
+      await _ensureAmbientReady(ambientAssetPath: ambientAssetPath);
     } catch (error) {
       _ambientInitFuture = null;
       _ambientReady = false;
@@ -160,10 +146,23 @@ class AudioService {
       return;
     }
 
+    final token = ++_ambientOperationToken;
     await _ambientPlayer.stop();
+    if (_isDisposed || token != _ambientOperationToken) {
+      return;
+    }
+
     await _ambientPlayer.seek(Duration.zero);
-    await _ambientPlayer.setVolume(1.0);
-    await _ambientPlayer.play();
+    await _ambientPlayer.setVolume(0.0);
+    unawaited(_ambientPlayer.play());
+
+    for (var i = 1; i <= _fadeInSteps; i++) {
+      await Future<void>.delayed(_fadeInStepDuration);
+      if (_isDisposed || token != _ambientOperationToken) {
+        return;
+      }
+      await _ambientPlayer.setVolume(i / _fadeInSteps);
+    }
   }
 
   Future<void> stopAmbient() async {
@@ -175,12 +174,28 @@ class AudioService {
       return;
     }
 
-    await _ambientPlayer.setVolume(0.0);
+    final token = ++_ambientOperationToken;
+    final startVolume = _ambientPlayer.volume;
+
+    for (var i = _fadeOutSteps; i >= 0; i--) {
+      await Future<void>.delayed(_fadeOutStepDuration);
+      if (_isDisposed || token != _ambientOperationToken) {
+        return;
+      }
+      await _ambientPlayer.setVolume((i / _fadeOutSteps) * startVolume);
+    }
+
+    if (_isDisposed || token != _ambientOperationToken) {
+      return;
+    }
+
     await _ambientPlayer.stop();
     await _ambientPlayer.setVolume(1.0);
   }
 
   void dispose() {
+    _isDisposed = true;
+    _ambientOperationToken++;
     _alarmPlayer.dispose();
     _ambientPlayer.dispose();
   }
