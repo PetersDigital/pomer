@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pomer/core/constants/app_constants.dart';
 import 'package:pomer/features/settings/providers/settings_provider.dart';
+import 'package:pomer/features/settings/models/settings_state.dart';
 import 'package:pomer/features/timer/models/timer_state.dart';
 import 'package:pomer/core/services/audio_service.dart';
 import 'package:pomer/core/services/notification_service.dart';
@@ -47,14 +48,39 @@ class TimerNotifier extends _$TimerNotifier {
           );
         }
       }
+
+      if (next.hasValue &&
+          state.status == TimerStatus.running &&
+          ref.read(audioEnabledNotifierProvider)) {
+        final previousSettings = previous?.valueOrNull;
+        final currentSettings = next.value!;
+        final focusTrackChanged = previousSettings?.focusAmbientTrack !=
+            currentSettings.focusAmbientTrack;
+        final longBreakTrackChanged =
+            previousSettings?.longBreakTrack != currentSettings.longBreakTrack;
+
+        if ((state.phase == TimerPhase.focus && focusTrackChanged) ||
+            (state.phase == TimerPhase.longBreak && longBreakTrackChanged)) {
+          final assetPath = _selectedPhaseAudioAssetPath;
+          if (assetPath != null) {
+            ref.read(audioServiceProvider).playAmbient(
+                  ambientAssetPath: assetPath,
+                );
+          }
+        }
+      }
     });
 
     // Listen to audio enabled toggle dynamically
     ref.listen(audioEnabledNotifierProvider, (previous, next) {
-      if (state.status == TimerStatus.running &&
-          state.phase == TimerPhase.focus) {
+      if (state.status == TimerStatus.running) {
         if (next) {
-          ref.read(audioServiceProvider).playAmbient();
+          final assetPath = _selectedPhaseAudioAssetPath;
+          if (assetPath != null) {
+            ref.read(audioServiceProvider).playAmbient(
+                  ambientAssetPath: assetPath,
+                );
+          }
         } else {
           ref.read(audioServiceProvider).stopAmbient();
         }
@@ -73,10 +99,13 @@ class TimerNotifier extends _$TimerNotifier {
     state = state.copyWith(status: TimerStatus.running);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
 
-    // Play ambient sound if in focus mode
+    // Play configured phase sound for focus and long break only
     final isAudioEnabled = ref.read(audioEnabledNotifierProvider);
-    if (state.phase == TimerPhase.focus && isAudioEnabled) {
-      ref.read(audioServiceProvider).playAmbient();
+    final assetPath = _selectedPhaseAudioAssetPath;
+    if (isAudioEnabled && assetPath != null) {
+      ref.read(audioServiceProvider).playAmbient(
+            ambientAssetPath: assetPath,
+          );
     }
 
     // Update foreground service to show "Pause" button
@@ -250,6 +279,20 @@ class TimerNotifier extends _$TimerNotifier {
           remainingSeconds: focusDuration * 60,
           completedCycles: 0,
         );
+    }
+  }
+
+  String? get _selectedPhaseAudioAssetPath {
+    final settings = ref.read(settingsNotifierProvider).valueOrNull;
+    switch (state.phase) {
+      case TimerPhase.focus:
+        return settings?.focusAmbientTrack.assetPath ??
+            FocusAmbientTrack.stream.assetPath;
+      case TimerPhase.longBreak:
+        return settings?.longBreakTrack.assetPath ??
+            LongBreakTrack.easyGoing.assetPath;
+      case TimerPhase.shortBreak:
+        return null;
     }
   }
 }

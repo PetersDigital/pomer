@@ -222,6 +222,52 @@ class SettingsScreen extends ConsumerWidget {
                 .toggleNotificationsEnabled(val);
           },
         ),
+        ListTile(
+          title: const Text('Focus Ambient Track'),
+          trailing: DropdownButton<FocusAmbientTrack>(
+            value: settings.focusAmbientTrack,
+            items: FocusAmbientTrack.values
+                .map(
+                  (track) => DropdownMenuItem(
+                    value: track,
+                    child: Text(track.label),
+                  ),
+                )
+                .toList(),
+            onChanged: settings.soundEnabled
+                ? (track) {
+                    if (track != null) {
+                      ref
+                          .read(settingsNotifierProvider.notifier)
+                          .setFocusAmbientTrack(track);
+                    }
+                  }
+                : null,
+          ),
+        ),
+        ListTile(
+          title: const Text('Long Break Track'),
+          trailing: DropdownButton<LongBreakTrack>(
+            value: settings.longBreakTrack,
+            items: LongBreakTrack.values
+                .map(
+                  (track) => DropdownMenuItem(
+                    value: track,
+                    child: Text(track.label),
+                  ),
+                )
+                .toList(),
+            onChanged: settings.soundEnabled
+                ? (track) {
+                    if (track != null) {
+                      ref
+                          .read(settingsNotifierProvider.notifier)
+                          .setLongBreakTrack(track);
+                    }
+                  }
+                : null,
+          ),
+        ),
       ],
     );
   }

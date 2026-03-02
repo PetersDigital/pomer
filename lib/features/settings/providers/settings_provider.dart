@@ -21,6 +21,8 @@ class SettingsNotifier extends _$SettingsNotifier {
   static const String _keySelectedPreset = 'selectedPreset';
   static const String _keySoundEnabled = 'soundEnabled';
   static const String _keyNotificationsEnabled = 'notificationsEnabled';
+  static const String _keyFocusAmbientTrack = 'focusAmbientTrack';
+  static const String _keyLongBreakTrack = 'longBreakTrack';
 
   @override
   Future<SettingsState> build() async {
@@ -39,6 +41,8 @@ class SettingsNotifier extends _$SettingsNotifier {
       _prefs.getInt(_keySelectedPreset),
       _prefs.getBool(_keySoundEnabled),
       _prefs.getBool(_keyNotificationsEnabled),
+      _prefs.getInt(_keyFocusAmbientTrack),
+      _prefs.getInt(_keyLongBreakTrack),
     ]);
 
     final focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
@@ -53,6 +57,18 @@ class SettingsNotifier extends _$SettingsNotifier {
     final presetIndex = results[7] as int? ?? TimerPreset.classic.index;
     final soundEnabled = results[8] as bool? ?? true;
     final notificationsEnabled = results[9] as bool? ?? true;
+    final focusAmbientTrackIndex =
+        results[10] as int? ?? FocusAmbientTrack.stream.index;
+    final longBreakTrackIndex =
+        results[11] as int? ?? LongBreakTrack.easyGoing.index;
+    final focusAmbientTrack = focusAmbientTrackIndex >= 0 &&
+            focusAmbientTrackIndex < FocusAmbientTrack.values.length
+        ? FocusAmbientTrack.values[focusAmbientTrackIndex]
+        : FocusAmbientTrack.stream;
+    final longBreakTrack = longBreakTrackIndex >= 0 &&
+            longBreakTrackIndex < LongBreakTrack.values.length
+        ? LongBreakTrack.values[longBreakTrackIndex]
+        : LongBreakTrack.easyGoing;
 
     return SettingsState(
       focusDuration: focus,
@@ -65,6 +81,8 @@ class SettingsNotifier extends _$SettingsNotifier {
       notificationsEnabled: notificationsEnabled,
       themeMode: ThemeMode.values[themeIndex],
       selectedPreset: TimerPreset.values[presetIndex],
+      focusAmbientTrack: focusAmbientTrack,
+      longBreakTrack: longBreakTrack,
     );
   }
 
@@ -145,5 +163,15 @@ class SettingsNotifier extends _$SettingsNotifier {
   Future<void> setThemeMode(ThemeMode mode) async {
     await _prefs.setInt(_keyThemeMode, mode.index);
     state = AsyncData(state.value!.copyWith(themeMode: mode));
+  }
+
+  Future<void> setFocusAmbientTrack(FocusAmbientTrack track) async {
+    await _prefs.setInt(_keyFocusAmbientTrack, track.index);
+    state = AsyncData(state.value!.copyWith(focusAmbientTrack: track));
+  }
+
+  Future<void> setLongBreakTrack(LongBreakTrack track) async {
+    await _prefs.setInt(_keyLongBreakTrack, track.index);
+    state = AsyncData(state.value!.copyWith(longBreakTrack: track));
   }
 }
