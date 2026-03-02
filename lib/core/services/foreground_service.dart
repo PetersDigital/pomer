@@ -40,6 +40,9 @@ ForegroundService foregroundService(Ref ref) {
 }
 
 class ForegroundService {
+  void Function(String action)? _actionHandler;
+  bool _taskDataCallbackRegistered = false;
+
   void init() {
     if (!PlatformUtils.isAndroid) {
       return;
@@ -60,6 +63,7 @@ class ForegroundService {
       foregroundTaskOptions: ForegroundTaskOptions(
         eventAction: ForegroundTaskEventAction.repeat(15000),
         autoRunOnBoot: false,
+        stopWithTask: true,
         allowWakeLock: false,
         allowWifiLock: false,
       ),
@@ -71,11 +75,23 @@ class ForegroundService {
       return;
     }
 
+    _actionHandler = onAction;
+    if (_taskDataCallbackRegistered) {
+      return;
+    }
+
+    _taskDataCallbackRegistered = true;
+
     FlutterForegroundTask.addTaskDataCallback((data) {
-      if (data is Map<String, dynamic>) {
+      if (data is String) {
+        _actionHandler?.call(data);
+        return;
+      }
+
+      if (data is Map) {
         final action = data['action'];
         if (action is String) {
-          onAction(action);
+          _actionHandler?.call(action);
         }
       }
     });
