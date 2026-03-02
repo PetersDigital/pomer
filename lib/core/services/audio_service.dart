@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -58,9 +60,12 @@ class AudioService {
     }
 
     _ambientInitFuture ??= () async {
-      await _setPlayerSource(
+      await _setPlayerSourceCandidates(
         _ambientPlayer,
-        'assets/audio/ambience_calm_river_loop.ogg',
+        const [
+          'assets/audio/ambience_stream_loop.ogg',
+          'assets/audio/ambience_calm_river_loop.ogg',
+        ],
       );
       await _ambientPlayer.setLoopMode(LoopMode.one);
       _ambientReady = true;
@@ -101,6 +106,26 @@ class AudioService {
     }
   }
 
+  Future<void> _setPlayerSourceCandidates(
+    AudioPlayer player,
+    List<String> assetPaths,
+  ) async {
+    Object? lastError;
+
+    for (final assetPath in assetPaths) {
+      try {
+        await _setPlayerSource(player, assetPath);
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (lastError != null) {
+      throw lastError;
+    }
+  }
+
   Future<void> playAlarm() async {
     try {
       await _ensureAlarmReady();
@@ -124,23 +149,21 @@ class AudioService {
   Future<void> playAmbient() async {
     try {
       await _ensureAmbientReady();
-    } catch (_) {
+    } catch (error) {
       _ambientInitFuture = null;
       _ambientReady = false;
+      developer.log(
+        'Ambient init failed',
+        name: 'AudioService',
+        error: error,
+      );
       return;
     }
 
-    if (_ambientPlayer.playing) {
-      return;
-    }
-
-    // Fade in
-    await _ambientPlayer.setVolume(0.0);
+    await _ambientPlayer.stop();
+    await _ambientPlayer.seek(Duration.zero);
+    await _ambientPlayer.setVolume(1.0);
     await _ambientPlayer.play();
-    for (int i = 1; i <= 10; i++) {
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      await _ambientPlayer.setVolume(i / 10.0);
-    }
   }
 
   Future<void> stopAmbient() async {
@@ -152,13 +175,9 @@ class AudioService {
       return;
     }
 
-    // Fade out
-    final startVolume = _ambientPlayer.volume;
-    for (int i = 10; i >= 0; i--) {
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      await _ambientPlayer.setVolume((i / 10.0) * startVolume);
-    }
+    await _ambientPlayer.setVolume(0.0);
     await _ambientPlayer.stop();
+    await _ambientPlayer.setVolume(1.0);
   }
 
   void dispose() {
