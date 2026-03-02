@@ -60,7 +60,7 @@ class AudioService {
     _ambientInitFuture ??= () async {
       await _setPlayerSource(
         _ambientPlayer,
-        'assets/audio/ambience_calm_river_loop.mp3',
+        'assets/audio/ambience_calm_river_loop.ogg',
       );
       await _ambientPlayer.setLoopMode(LoopMode.one);
       _ambientReady = true;
