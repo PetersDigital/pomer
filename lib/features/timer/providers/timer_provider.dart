@@ -51,7 +51,8 @@ class TimerNotifier extends _$TimerNotifier {
 
     // Listen to audio enabled toggle dynamically
     ref.listen(audioEnabledNotifierProvider, (previous, next) {
-      if (state.status == TimerStatus.running && state.phase == TimerPhase.focus) {
+      if (state.status == TimerStatus.running &&
+          state.phase == TimerPhase.focus) {
         if (next) {
           ref.read(audioServiceProvider).playAmbient();
         } else {
@@ -70,7 +71,7 @@ class TimerNotifier extends _$TimerNotifier {
     _targetTime = DateTime.now().add(Duration(seconds: state.remainingSeconds));
 
     state = state.copyWith(status: TimerStatus.running);
-    _timer = Timer.periodic(const Duration(milliseconds: 200), (_) => _onTick());
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
 
     // Play ambient sound if in focus mode
     final isAudioEnabled = ref.read(audioEnabledNotifierProvider);
@@ -80,7 +81,11 @@ class TimerNotifier extends _$TimerNotifier {
 
     // Update foreground service to show "Pause" button
     final String phaseText = state.phase.name.toUpperCase();
-    ref.read(foregroundServiceProvider).startService('Pomer - $phaseText', state.remainingSeconds.toMMSS(), isPaused: false);
+    ref.read(foregroundServiceProvider).startService(
+          'Pomer - $phaseText',
+          state.remainingSeconds.toMMSS(),
+          isPaused: false,
+        );
   }
 
   void pause() {
@@ -95,7 +100,11 @@ class TimerNotifier extends _$TimerNotifier {
 
     // Update foreground service to show "Resume" button
     final String phaseText = state.phase.name.toUpperCase();
-    ref.read(foregroundServiceProvider).startService('Pomer - $phaseText (Paused)', state.remainingSeconds.toMMSS(), isPaused: true);
+    ref.read(foregroundServiceProvider).startService(
+          'Pomer - $phaseText (Paused)',
+          state.remainingSeconds.toMMSS(),
+          isPaused: true,
+        );
   }
 
   void reset() {
@@ -104,7 +113,8 @@ class TimerNotifier extends _$TimerNotifier {
     _targetTime = null;
 
     final settingsAsync = ref.read(settingsNotifierProvider);
-    final focusDuration = settingsAsync.valueOrNull?.focusDuration ?? AppConstants.defaultFocusDuration;
+    final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
+        AppConstants.defaultFocusDuration;
 
     state = TimerState.initial().copyWith(
       totalSeconds: focusDuration * 60,
@@ -137,7 +147,11 @@ class TimerNotifier extends _$TimerNotifier {
 
         // Update foreground service
         final String phaseText = state.phase.name.toUpperCase();
-        ref.read(foregroundServiceProvider).startService('Pomer - $phaseText', remaining.toMMSS(), isPaused: state.status == TimerStatus.paused);
+        ref.read(foregroundServiceProvider).startService(
+              'Pomer - $phaseText',
+              remaining.toMMSS(),
+              isPaused: state.status == TimerStatus.paused,
+            );
       }
       return;
     }
@@ -159,15 +173,18 @@ class TimerNotifier extends _$TimerNotifier {
     }
 
     ref.read(notificationServiceProvider).showNotification(
-      id: 0,
-      title: 'Pomer Phase Complete',
-      body: 'Your ${state.phase.name} phase has finished.',
-    );
+          id: 0,
+          title: 'Pomer Phase Complete',
+          body: 'Your ${state.phase.name} phase has finished.',
+        );
 
     final settingsAsync = ref.read(settingsNotifierProvider);
-    final focusDuration = settingsAsync.valueOrNull?.focusDuration ?? AppConstants.defaultFocusDuration;
-    final shortBreakDuration = settingsAsync.valueOrNull?.shortBreakDuration ?? AppConstants.defaultShortBreakDuration;
-    final longBreakDuration = settingsAsync.valueOrNull?.longBreakDuration ?? AppConstants.defaultLongBreakDuration;
+    final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
+        AppConstants.defaultFocusDuration;
+    final shortBreakDuration = settingsAsync.valueOrNull?.shortBreakDuration ??
+        AppConstants.defaultShortBreakDuration;
+    final longBreakDuration = settingsAsync.valueOrNull?.longBreakDuration ??
+        AppConstants.defaultLongBreakDuration;
 
     state = _nextPhaseState(
       current: state,
@@ -179,9 +196,12 @@ class TimerNotifier extends _$TimerNotifier {
     // Auto-start next phase logic
     if (settingsAsync.hasValue) {
       final settings = settingsAsync.value!;
-      if ((state.phase == TimerPhase.shortBreak || state.phase == TimerPhase.longBreak) && settings.autoStartBreaks) {
+      if ((state.phase == TimerPhase.shortBreak ||
+              state.phase == TimerPhase.longBreak) &&
+          settings.autoStartBreaks) {
         start();
-      } else if (state.phase == TimerPhase.focus && settings.autoStartPomodoros) {
+      } else if (state.phase == TimerPhase.focus &&
+          settings.autoStartPomodoros) {
         start();
       }
     }

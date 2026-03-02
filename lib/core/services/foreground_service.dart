@@ -12,20 +12,19 @@ void startCallback() {
 
 class MyTaskHandler extends TaskHandler {
   @override
-  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-  }
+  Future<void> onStart(DateTime timestamp, TaskStarter starter) async {}
 
   @override
-  void onRepeatEvent(DateTime timestamp) {
-  }
+  void onRepeatEvent(DateTime timestamp) {}
 
   @override
-  Future<void> onDestroy(DateTime timestamp, bool isServiceExpectedToDestroy) async {
-  }
+  Future<void> onDestroy(
+    DateTime timestamp,
+    bool isServiceExpectedToDestroy,
+  ) async {}
 
   @override
-  void onReceiveData(Object data) {
-  }
+  void onReceiveData(Object data) {}
 
   @override
   void onNotificationButtonPressed(String id) {
@@ -59,10 +58,10 @@ class ForegroundService {
         playSound: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(1000), // Check events/lifecycle
+        eventAction: ForegroundTaskEventAction.repeat(15000),
         autoRunOnBoot: false,
-        allowWakeLock: true,
-        allowWifiLock: true,
+        allowWakeLock: false,
+        allowWifiLock: false,
       ),
     );
   }
@@ -82,7 +81,11 @@ class ForegroundService {
     });
   }
 
-  Future<void> startService(String title, String text, {bool isPaused = false}) async {
+  Future<void> startService(
+    String title,
+    String text, {
+    bool isPaused = false,
+  }) async {
     if (!PlatformUtils.isAndroid) {
       return;
     }
@@ -107,7 +110,11 @@ class ForegroundService {
     }
   }
 
-  Future<void> updateService(String title, String text, {bool isPaused = false}) async {
+  Future<void> updateService(
+    String title,
+    String text, {
+    bool isPaused = false,
+  }) async {
     if (!PlatformUtils.isAndroid) {
       return;
     }
