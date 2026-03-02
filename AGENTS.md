@@ -146,3 +146,13 @@ Breaking architectural changes require:
 - Downgrade SDK targets
 - Remove strict lints
 - Introduce cross-feature coupling
+
+---
+
+# 8. Local Development Environment
+
+On this local development machine, use the following environment paths:
+
+- `GRADLE_USER_HOME` = `D:\software_dev\buildtools\gradle-cache`
+- `PUB_CACHE` = `D:\software_dev\buildtools\flutter-pub-cache`
+- `JAVA_HOME` = `C:\Program Files\Microsoft\jdk-17.0.18.8-hotspot`
