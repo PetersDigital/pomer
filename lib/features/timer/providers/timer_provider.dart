@@ -7,7 +7,6 @@ import 'package:pomer/features/timer/models/timer_state.dart';
 import 'package:pomer/core/services/audio_service.dart';
 import 'package:pomer/core/services/notification_service.dart';
 import 'package:pomer/core/services/foreground_service.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:pomer/features/timer/providers/audio_enabled_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
 
@@ -25,16 +24,13 @@ class TimerNotifier extends _$TimerNotifier {
     });
 
     // Listen to background actions
-    FlutterForegroundTask.addTaskDataCallback((data) {
-      if (data is Map<String, dynamic>) {
-        final action = data['action'];
-        if (action == 'pause') {
-          pause();
-        } else if (action == 'resume') {
-          start();
-        } else if (action == 'skip') {
-          skip();
-        }
+    ref.read(foregroundServiceProvider).registerActionCallback((action) {
+      if (action == 'pause') {
+        pause();
+      } else if (action == 'resume') {
+        start();
+      } else if (action == 'skip') {
+        skip();
       }
     });
 

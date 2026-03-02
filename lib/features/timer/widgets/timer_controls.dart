@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pomer/core/utils/platform_utils.dart';
 import 'package:pomer/features/timer/models/timer_state.dart';
 import 'package:pomer/features/timer/providers/timer_provider.dart';
 
@@ -18,7 +19,7 @@ class TimerControls extends ConsumerWidget {
         if (timerState.status == TimerStatus.idle) ...[
           FilledButton.icon(
             onPressed: () async {
-              if (await Permission.notification.isDenied) {
+              if (PlatformUtils.isMobile && await Permission.notification.isDenied) {
                 await Permission.notification.request();
               }
               notifier.start();
@@ -36,7 +37,7 @@ class TimerControls extends ConsumerWidget {
           else
             IconButton.filled(
               onPressed: () async {
-                if (await Permission.notification.isDenied) {
+                if (PlatformUtils.isMobile && await Permission.notification.isDenied) {
                   await Permission.notification.request();
                 }
                 notifier.start();

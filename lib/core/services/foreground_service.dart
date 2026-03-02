@@ -1,6 +1,7 @@
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:pomer/core/utils/platform_utils.dart';
 
 part 'foreground_service.g.dart';
 
@@ -41,6 +42,10 @@ ForegroundService foregroundService(Ref ref) {
 
 class ForegroundService {
   void init() {
+    if (!PlatformUtils.isAndroid) {
+      return;
+    }
+
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(
         channelId: 'pomer_foreground_service',
@@ -62,7 +67,26 @@ class ForegroundService {
     );
   }
 
+  void registerActionCallback(void Function(String action) onAction) {
+    if (!PlatformUtils.isAndroid) {
+      return;
+    }
+
+    FlutterForegroundTask.addTaskDataCallback((data) {
+      if (data is Map<String, dynamic>) {
+        final action = data['action'];
+        if (action is String) {
+          onAction(action);
+        }
+      }
+    });
+  }
+
   Future<void> startService(String title, String text, {bool isPaused = false}) async {
+    if (!PlatformUtils.isAndroid) {
+      return;
+    }
+
     final buttons = [
       if (isPaused)
         const NotificationButton(id: 'resume', text: 'Resume')
@@ -84,6 +108,10 @@ class ForegroundService {
   }
 
   Future<void> updateService(String title, String text, {bool isPaused = false}) async {
+    if (!PlatformUtils.isAndroid) {
+      return;
+    }
+
     final buttons = [
       if (isPaused)
         const NotificationButton(id: 'resume', text: 'Resume')
@@ -100,6 +128,10 @@ class ForegroundService {
   }
 
   Future<void> stopService() async {
+    if (!PlatformUtils.isAndroid) {
+      return;
+    }
+
     await FlutterForegroundTask.stopService();
   }
 }

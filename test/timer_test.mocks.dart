@@ -140,6 +140,16 @@ class MockForegroundService extends _i1.Mock implements _i5.ForegroundService {
       );
 
   @override
+  void registerActionCallback(void Function(String)? onAction) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #registerActionCallback,
+          [onAction],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
   _i3.Future<void> startService(
     String? title,
     String? text, {

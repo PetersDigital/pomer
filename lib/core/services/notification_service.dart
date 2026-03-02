@@ -2,6 +2,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:pomer/core/utils/platform_utils.dart';
+import 'package:pomer/core/services/web_notification_helper.dart';
 
 part 'notification_service.g.dart';
 
@@ -20,6 +22,10 @@ class NotificationService {
   }
 
   Future<void> _init() async {
+    if (PlatformUtils.isWeb) {
+      return;
+    }
+
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -47,6 +53,11 @@ class NotificationService {
   }
 
   Future<void> requestPermissions() async {
+    if (PlatformUtils.isWeb) {
+      await requestWebNotificationPermission();
+      return;
+    }
+
     // Permission handler handles mostly mobile. On windows/web this may no-op or throw, so catch it.
     try {
       if (await Permission.notification.isDenied) {
@@ -62,6 +73,11 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
+    if (PlatformUtils.isWeb) {
+      await showWebNotification(title: title, body: body);
+      return;
+    }
+
     await _initFuture;
 
     const AndroidNotificationDetails androidNotificationDetails =
@@ -87,11 +103,15 @@ class NotificationService {
       linux: null, // Depending on plugin support
     );
 
-    await _flutterLocalNotificationsPlugin.show(
-      id: id,
-      title: title,
-      body: body,
-      notificationDetails: notificationDetails,
-    );
+    try {
+      await _flutterLocalNotificationsPlugin.show(
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
+      );
+    } catch (_) {
+      // Ignore unsupported platform plugin calls.
+    }
   }
 }
