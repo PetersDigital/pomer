@@ -5,8 +5,9 @@ import 'package:pomer/features/timer/providers/timer_provider.dart';
 import 'package:pomer/features/timer/widgets/phase_utils.dart';
 import 'package:pomer/features/timer/widgets/timer_controls.dart';
 import 'package:pomer/features/timer/widgets/timer_display.dart';
+import 'package:pomer/features/timer/providers/audio_enabled_provider.dart';
 
-/// Full Pomodoro timer screen — v0.2.0.
+/// Full Pomodoro timer screen — v0.4.0.
 class TimerScreen extends ConsumerWidget {
   const TimerScreen({super.key});
 
@@ -24,13 +25,35 @@ class TimerScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: Column(
               children: [
-                Chip(
-                  label: Text(timerState.phase.label),
-                  backgroundColor: color.withAlpha(40),
-                  labelStyle: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.center,
+                      child: Chip(
+                        label: Text(timerState.phase.label),
+                        backgroundColor: color.withAlpha(40),
+                        labelStyle: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon: Icon(
+                          ref.watch(audioEnabledNotifierProvider)
+                              ? Icons.volume_up
+                              : Icons.volume_off,
+                          color: color,
+                        ),
+                        onPressed: () {
+                          ref.read(audioEnabledNotifierProvider.notifier).toggle();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const Spacer(),
                 const TimerDisplay(),

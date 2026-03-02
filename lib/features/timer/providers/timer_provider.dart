@@ -4,6 +4,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pomer/core/constants/app_constants.dart';
 import 'package:pomer/features/settings/providers/settings_provider.dart';
 import 'package:pomer/features/timer/models/timer_state.dart';
+import 'package:pomer/core/services/audio_service.dart';
+import 'package:pomer/core/services/notification_service.dart';
+import 'package:pomer/core/services/foreground_service.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:pomer/features/timer/providers/audio_enabled_provider.dart';
+import 'package:pomer/core/utils/time_utils.dart';
 
 part 'timer_provider.g.dart';
 
@@ -16,6 +22,20 @@ class TimerNotifier extends _$TimerNotifier {
   TimerState build() {
     ref.onDispose(() {
       _timer?.cancel();
+    });
+
+    // Listen to background actions
+    FlutterForegroundTask.addTaskDataCallback((data) {
+      if (data is Map<String, dynamic>) {
+        final action = data['action'];
+        if (action == 'pause') {
+          pause();
+        } else if (action == 'resume') {
+          start();
+        } else if (action == 'skip') {
+          skip();
+        }
+      }
     });
 
     ref.listen(settingsNotifierProvider, (previous, next) {
@@ -33,6 +53,17 @@ class TimerNotifier extends _$TimerNotifier {
       }
     });
 
+    // Listen to audio enabled toggle dynamically
+    ref.listen(audioEnabledNotifierProvider, (previous, next) {
+      if (state.status == TimerStatus.running && state.phase == TimerPhase.focus) {
+        if (next) {
+          ref.read(audioServiceProvider).playAmbient();
+        } else {
+          ref.read(audioServiceProvider).stopAmbient();
+        }
+      }
+    });
+
     return TimerState.initial();
   }
 
@@ -44,6 +75,16 @@ class TimerNotifier extends _$TimerNotifier {
 
     state = state.copyWith(status: TimerStatus.running);
     _timer = Timer.periodic(const Duration(milliseconds: 200), (_) => _onTick());
+
+    // Play ambient sound if in focus mode
+    final isAudioEnabled = ref.read(audioEnabledNotifierProvider);
+    if (state.phase == TimerPhase.focus && isAudioEnabled) {
+      ref.read(audioServiceProvider).playAmbient();
+    }
+
+    // Update foreground service to show "Pause" button
+    final String phaseText = state.phase.name.toUpperCase();
+    ref.read(foregroundServiceProvider).startService('Pomer - $phaseText', state.remainingSeconds.toMMSS(), isPaused: false);
   }
 
   void pause() {
@@ -52,6 +93,13 @@ class TimerNotifier extends _$TimerNotifier {
     _timer = null;
     _targetTime = null;
     state = state.copyWith(status: TimerStatus.paused);
+
+    // Stop audio
+    ref.read(audioServiceProvider).stopAmbient();
+
+    // Update foreground service to show "Resume" button
+    final String phaseText = state.phase.name.toUpperCase();
+    ref.read(foregroundServiceProvider).startService('Pomer - $phaseText (Paused)', state.remainingSeconds.toMMSS(), isPaused: true);
   }
 
   void reset() {
@@ -66,6 +114,13 @@ class TimerNotifier extends _$TimerNotifier {
       totalSeconds: focusDuration * 60,
       remainingSeconds: focusDuration * 60,
     );
+
+    _stopAuxiliaryServices();
+  }
+
+  void _stopAuxiliaryServices() {
+    ref.read(audioServiceProvider).stopAmbient();
+    ref.read(foregroundServiceProvider).stopService();
   }
 
   void skip() {
@@ -83,6 +138,10 @@ class TimerNotifier extends _$TimerNotifier {
     if (remaining >= 0) {
       if (remaining != state.remainingSeconds) {
         state = state.copyWith(remainingSeconds: remaining);
+
+        // Update foreground service
+        final String phaseText = state.phase.name.toUpperCase();
+        ref.read(foregroundServiceProvider).startService('Pomer - $phaseText', remaining.toMMSS(), isPaused: state.status == TimerStatus.paused);
       }
       return;
     }
@@ -95,6 +154,19 @@ class TimerNotifier extends _$TimerNotifier {
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
+
+    ref.read(audioServiceProvider).stopAmbient();
+
+    final isAudioEnabled = ref.read(audioEnabledNotifierProvider);
+    if (isAudioEnabled) {
+      ref.read(audioServiceProvider).playAlarm();
+    }
+
+    ref.read(notificationServiceProvider).showNotification(
+      id: 0,
+      title: 'Pomer Phase Complete',
+      body: 'Your ${state.phase.name} phase has finished.',
+    );
 
     final settingsAsync = ref.read(settingsNotifierProvider);
     final focusDuration = settingsAsync.valueOrNull?.focusDuration ?? AppConstants.defaultFocusDuration;

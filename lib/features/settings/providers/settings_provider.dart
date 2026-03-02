@@ -19,6 +19,8 @@ class SettingsNotifier extends _$SettingsNotifier {
   static const String _keyKeepScreenOn = 'keepScreenOn';
   static const String _keyThemeMode = 'themeMode';
   static const String _keySelectedPreset = 'selectedPreset';
+  static const String _keySoundEnabled = 'soundEnabled';
+  static const String _keyNotificationsEnabled = 'notificationsEnabled';
 
   @override
   Future<SettingsState> build() async {
@@ -35,16 +37,22 @@ class SettingsNotifier extends _$SettingsNotifier {
       _prefs.getBool(_keyKeepScreenOn),
       _prefs.getInt(_keyThemeMode),
       _prefs.getInt(_keySelectedPreset),
+      _prefs.getBool(_keySoundEnabled),
+      _prefs.getBool(_keyNotificationsEnabled),
     ]);
 
     final focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
-    final shortBreak = results[1] as int? ?? AppConstants.defaultShortBreakDuration;
-    final longBreak = results[2] as int? ?? AppConstants.defaultLongBreakDuration;
+    final shortBreak =
+        results[1] as int? ?? AppConstants.defaultShortBreakDuration;
+    final longBreak =
+        results[2] as int? ?? AppConstants.defaultLongBreakDuration;
     final autoStartBreaks = results[3] as bool? ?? false;
     final autoStartPomodoros = results[4] as bool? ?? false;
     final keepScreenOn = results[5] as bool? ?? false;
     final themeIndex = results[6] as int? ?? ThemeMode.system.index;
     final presetIndex = results[7] as int? ?? TimerPreset.classic.index;
+    final soundEnabled = results[8] as bool? ?? true;
+    final notificationsEnabled = results[9] as bool? ?? true;
 
     return SettingsState(
       focusDuration: focus,
@@ -53,6 +61,8 @@ class SettingsNotifier extends _$SettingsNotifier {
       autoStartBreaks: autoStartBreaks,
       autoStartPomodoros: autoStartPomodoros,
       keepScreenOn: keepScreenOn,
+      soundEnabled: soundEnabled,
+      notificationsEnabled: notificationsEnabled,
       themeMode: ThemeMode.values[themeIndex],
       selectedPreset: TimerPreset.values[presetIndex],
     );
@@ -84,10 +94,20 @@ class SettingsNotifier extends _$SettingsNotifier {
   Future<void> applyPreset(TimerPreset preset) async {
     switch (preset) {
       case TimerPreset.classic:
-        await updateDurations(focus: 25, shortBreak: 5, longBreak: 15, preset: preset);
+        await updateDurations(
+          focus: 25,
+          shortBreak: 5,
+          longBreak: 15,
+          preset: preset,
+        );
         break;
       case TimerPreset.extended:
-        await updateDurations(focus: 50, shortBreak: 10, longBreak: 30, preset: preset);
+        await updateDurations(
+          focus: 50,
+          shortBreak: 10,
+          longBreak: 30,
+          preset: preset,
+        );
         break;
       case TimerPreset.custom:
         // Do nothing for durations, just update the preset
@@ -110,6 +130,16 @@ class SettingsNotifier extends _$SettingsNotifier {
   Future<void> toggleKeepScreenOn(bool value) async {
     await _prefs.setBool(_keyKeepScreenOn, value);
     state = AsyncData(state.value!.copyWith(keepScreenOn: value));
+  }
+
+  Future<void> toggleSoundEnabled(bool value) async {
+    await _prefs.setBool(_keySoundEnabled, value);
+    state = AsyncData(state.value!.copyWith(soundEnabled: value));
+  }
+
+  Future<void> toggleNotificationsEnabled(bool value) async {
+    await _prefs.setBool(_keyNotificationsEnabled, value);
+    state = AsyncData(state.value!.copyWith(notificationsEnabled: value));
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

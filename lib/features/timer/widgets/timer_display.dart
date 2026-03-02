@@ -4,15 +4,10 @@ import 'package:pomer/core/constants/app_constants.dart';
 import 'package:pomer/features/timer/models/timer_state.dart';
 import 'package:pomer/features/timer/providers/timer_provider.dart';
 import 'package:pomer/features/timer/widgets/phase_utils.dart';
+import 'package:pomer/core/utils/time_utils.dart';
 
 class TimerDisplay extends ConsumerWidget {
   const TimerDisplay({super.key});
-
-  String _formatTime(int seconds) {
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,7 +41,7 @@ class TimerDisplay extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _formatTime(timerState.remainingSeconds),
+                    timerState.remainingSeconds.toMMSS(),
                     style: textTheme.displayMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,

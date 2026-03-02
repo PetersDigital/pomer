@@ -24,6 +24,8 @@ class SettingsState {
     required this.autoStartBreaks,
     required this.autoStartPomodoros,
     required this.keepScreenOn,
+    required this.soundEnabled,
+    required this.notificationsEnabled,
     required this.themeMode,
     required this.selectedPreset,
   });
@@ -35,6 +37,8 @@ class SettingsState {
         autoStartBreaks: false,
         autoStartPomodoros: false,
         keepScreenOn: false,
+        soundEnabled: true,
+        notificationsEnabled: true,
         themeMode: ThemeMode.system,
         selectedPreset: TimerPreset.classic,
       );
@@ -45,6 +49,8 @@ class SettingsState {
   final bool autoStartBreaks;
   final bool autoStartPomodoros;
   final bool keepScreenOn;
+  final bool soundEnabled;
+  final bool notificationsEnabled;
   final ThemeMode themeMode;
   final TimerPreset selectedPreset;
 
@@ -55,6 +61,8 @@ class SettingsState {
     bool? autoStartBreaks,
     bool? autoStartPomodoros,
     bool? keepScreenOn,
+    bool? soundEnabled,
+    bool? notificationsEnabled,
     ThemeMode? themeMode,
     TimerPreset? selectedPreset,
   }) {
@@ -65,6 +73,8 @@ class SettingsState {
       autoStartBreaks: autoStartBreaks ?? this.autoStartBreaks,
       autoStartPomodoros: autoStartPomodoros ?? this.autoStartPomodoros,
       keepScreenOn: keepScreenOn ?? this.keepScreenOn,
+      soundEnabled: soundEnabled ?? this.soundEnabled,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       themeMode: themeMode ?? this.themeMode,
       selectedPreset: selectedPreset ?? this.selectedPreset,
     );
