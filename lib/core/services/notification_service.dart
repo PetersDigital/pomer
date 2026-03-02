@@ -16,6 +16,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   late final Future<void> _initFuture;
+  DateTime? _lastNotificationTimestamp;
+  int? _lastNotificationId;
+  String? _lastNotificationTitle;
+  String? _lastNotificationBody;
+
+  static const Duration _duplicateWindow = Duration(seconds: 3);
 
   NotificationService() {
     _initFuture = _init();
@@ -39,7 +45,8 @@ class NotificationService {
 
     // flutter_local_notifications recently added Windows/Linux settings via respective packages if needed,
     // but the plugin currently defaults to basic platform implementations if unconfigured.
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
       macOS: initializationSettingsDarwin,
@@ -80,6 +87,17 @@ class NotificationService {
 
     await _initFuture;
 
+    final now = DateTime.now();
+    final isDuplicateNotification = _lastNotificationTimestamp != null &&
+        _lastNotificationId == id &&
+        _lastNotificationTitle == title &&
+        _lastNotificationBody == body &&
+        now.difference(_lastNotificationTimestamp!) < _duplicateWindow;
+
+    if (isDuplicateNotification) {
+      return;
+    }
+
     const AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails(
       'pomer_timer_channel',
@@ -88,6 +106,7 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
+      onlyAlertOnce: true,
     );
 
     const DarwinNotificationDetails darwinNotificationDetails =
@@ -99,7 +118,8 @@ class NotificationService {
 
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
-      macOS: darwinNotificationDetails, // Adds support for Windows/macOS if applicable
+      macOS:
+          darwinNotificationDetails, // Adds support for Windows/macOS if applicable
       linux: null, // Depending on plugin support
     );
 
@@ -110,6 +130,10 @@ class NotificationService {
         body: body,
         notificationDetails: notificationDetails,
       );
+      _lastNotificationTimestamp = now;
+      _lastNotificationId = id;
+      _lastNotificationTitle = title;
+      _lastNotificationBody = body;
     } catch (_) {
       // Ignore unsupported platform plugin calls.
     }
