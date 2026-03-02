@@ -21,6 +21,7 @@ class AudioService {
   static const Duration _fadeInStepDuration = Duration(milliseconds: 125);
   static const int _fadeOutSteps = 16;
   static const Duration _fadeOutStepDuration = Duration(milliseconds: 125);
+  static const Duration _defaultTransitionDuration = Duration(seconds: 2);
 
   final AudioPlayer _alarmPlayer = AudioPlayer();
   final AudioPlayer _ambientPlayer = AudioPlayer();
@@ -31,7 +32,9 @@ class AudioService {
   bool _audioSessionConfigured = false;
   bool _isDisposed = false;
   int _ambientOperationToken = 0;
+  String? _currentAlarmAssetPath;
   String? _currentAmbientAssetPath;
+  Future<void>? _ambientFadeOutFuture;
 
   AudioService() {
     _configureAudioSession();
@@ -50,17 +53,20 @@ class AudioService {
     }
   }
 
-  Future<void> _ensureAlarmReady() async {
-    if (_alarmReady) {
+  Future<void> _ensureAlarmReady({required String alarmAssetPath}) async {
+    if (_alarmReady && _currentAlarmAssetPath == alarmAssetPath) {
       return;
     }
 
-    _alarmInitFuture ??= () async {
-      await _setPlayerSource(_alarmPlayer, 'assets/audio/alarm_x1.ogg');
+    _alarmInitFuture = () async {
+      await _alarmPlayer.stop();
+      await _setPlayerSource(_alarmPlayer, alarmAssetPath);
       _alarmReady = true;
+      _currentAlarmAssetPath = alarmAssetPath;
     }();
 
     await _alarmInitFuture;
+    _alarmInitFuture = null;
   }
 
   Future<void> _ensureAmbientReady({required String ambientAssetPath}) async {
@@ -112,9 +118,11 @@ class AudioService {
     }
   }
 
-  Future<void> playAlarm() async {
+  Future<void> playAlarm({
+    String alarmAssetPath = 'assets/audio/alarm_x1.ogg',
+  }) async {
     try {
-      await _ensureAlarmReady();
+      await _ensureAlarmReady(alarmAssetPath: alarmAssetPath);
       await _alarmPlayer.setVolume(1.0);
       await _alarmPlayer.seek(Duration.zero);
       await _alarmPlayer.play();
@@ -133,6 +141,11 @@ class AudioService {
   }
 
   Future<void> playAmbient({required String ambientAssetPath}) async {
+    final pendingFadeOut = _ambientFadeOutFuture;
+    if (pendingFadeOut != null) {
+      await pendingFadeOut;
+    }
+
     try {
       await _ensureAmbientReady(ambientAssetPath: ambientAssetPath);
     } catch (error) {
@@ -161,7 +174,9 @@ class AudioService {
       if (_isDisposed || token != _ambientOperationToken) {
         return;
       }
-      await _ambientPlayer.setVolume(i / _fadeInSteps);
+      final progress = i / _fadeInSteps;
+      final easedProgress = _easeInOut(progress);
+      await _ambientPlayer.setVolume(easedProgress);
     }
   }
 
@@ -170,27 +185,131 @@ class AudioService {
       return;
     }
 
-    if (!_ambientPlayer.playing) {
+    final pendingFadeOut = _ambientFadeOutFuture;
+    if (pendingFadeOut != null) {
+      await pendingFadeOut;
+      return;
+    }
+
+    final fadeOutCompleter = Completer<void>();
+    _ambientFadeOutFuture = fadeOutCompleter.future;
+
+    try {
+      final token = ++_ambientOperationToken;
+      final startVolume = _ambientPlayer.volume;
+
+      if (startVolume <= 0.0) {
+        await _ambientPlayer.stop();
+        await _ambientPlayer.setVolume(1.0);
+        return;
+      }
+
+      for (var i = 1; i <= _fadeOutSteps; i++) {
+        await Future<void>.delayed(_fadeOutStepDuration);
+        if (_isDisposed || token != _ambientOperationToken) {
+          return;
+        }
+        final progress = i / _fadeOutSteps;
+        final easedProgress = _easeInOut(progress);
+        final fadeFactor = 1.0 - easedProgress;
+        await _ambientPlayer.setVolume(fadeFactor * startVolume);
+      }
+
+      if (_isDisposed || token != _ambientOperationToken) {
+        return;
+      }
+
+      await _ambientPlayer.stop();
+      await _ambientPlayer.setVolume(1.0);
+    } finally {
+      _ambientFadeOutFuture = null;
+      if (!fadeOutCompleter.isCompleted) {
+        fadeOutCompleter.complete();
+      }
+    }
+  }
+
+  Future<void> transitionAmbient({
+    required String ambientAssetPath,
+    Duration transitionDuration = _defaultTransitionDuration,
+  }) async {
+    if (_currentAmbientAssetPath == ambientAssetPath) {
+      await playAmbient(ambientAssetPath: ambientAssetPath);
+      return;
+    }
+
+    final pendingFadeOut = _ambientFadeOutFuture;
+    if (pendingFadeOut != null) {
+      await pendingFadeOut;
+    }
+
+    if (!_ambientReady) {
+      await playAmbient(ambientAssetPath: ambientAssetPath);
       return;
     }
 
     final token = ++_ambientOperationToken;
-    final startVolume = _ambientPlayer.volume;
+    final startVolume =
+        _ambientPlayer.volume <= 0.0 ? 1.0 : _ambientPlayer.volume;
+    final halfOutDuration = Duration(
+      milliseconds: transitionDuration.inMilliseconds ~/ 2,
+    );
+    final halfInDuration = Duration(
+      milliseconds:
+          transitionDuration.inMilliseconds - halfOutDuration.inMilliseconds,
+    );
+    final halfOutSteps = _stepsForDuration(
+      duration: halfOutDuration,
+      stepDuration: _fadeOutStepDuration,
+    );
+    final halfInSteps = _stepsForDuration(
+      duration: halfInDuration,
+      stepDuration: _fadeInStepDuration,
+    );
 
-    for (var i = _fadeOutSteps; i >= 0; i--) {
+    for (var i = 1; i <= halfOutSteps; i++) {
       await Future<void>.delayed(_fadeOutStepDuration);
       if (_isDisposed || token != _ambientOperationToken) {
         return;
       }
-      await _ambientPlayer.setVolume((i / _fadeOutSteps) * startVolume);
+      final progress = i / halfOutSteps;
+      final easedProgress = _easeInOut(progress);
+      await _ambientPlayer.setVolume((1.0 - easedProgress) * startVolume);
     }
 
     if (_isDisposed || token != _ambientOperationToken) {
       return;
     }
 
-    await _ambientPlayer.stop();
-    await _ambientPlayer.setVolume(1.0);
+    try {
+      await _ambientPlayer.stop();
+      await _setPlayerSource(_ambientPlayer, ambientAssetPath);
+      await _ambientPlayer.setLoopMode(LoopMode.one);
+      _ambientReady = true;
+      _currentAmbientAssetPath = ambientAssetPath;
+      await _ambientPlayer.seek(Duration.zero);
+      await _ambientPlayer.setVolume(0.0);
+      unawaited(_ambientPlayer.play());
+    } catch (error) {
+      _ambientReady = false;
+      _ambientInitFuture = null;
+      developer.log(
+        'Ambient transition failed',
+        name: 'AudioService',
+        error: error,
+      );
+      return;
+    }
+
+    for (var i = 1; i <= halfInSteps; i++) {
+      await Future<void>.delayed(_fadeInStepDuration);
+      if (_isDisposed || token != _ambientOperationToken) {
+        return;
+      }
+      final progress = i / halfInSteps;
+      final easedProgress = _easeInOut(progress);
+      await _ambientPlayer.setVolume(easedProgress);
+    }
   }
 
   void dispose() {
@@ -198,5 +317,22 @@ class AudioService {
     _ambientOperationToken++;
     _alarmPlayer.dispose();
     _ambientPlayer.dispose();
+  }
+
+  double _easeInOut(double t) {
+    return t * t * (3 - 2 * t);
+  }
+
+  int _stepsForDuration({
+    required Duration duration,
+    required Duration stepDuration,
+  }) {
+    final durationMs = duration.inMilliseconds;
+    final stepMs = stepDuration.inMilliseconds;
+    if (durationMs <= 0 || stepMs <= 0) {
+      return 1;
+    }
+    final steps = durationMs ~/ stepMs;
+    return steps <= 0 ? 1 : steps;
   }
 }

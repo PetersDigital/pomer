@@ -20,8 +20,15 @@ class TimerNotifier extends _$TimerNotifier {
 
   @override
   TimerState build() {
+    final audioService = ref.read(audioServiceProvider);
+    final foregroundService = ref.read(foregroundServiceProvider);
+    final notificationService = ref.read(notificationServiceProvider);
+
     ref.onDispose(() {
       _timer?.cancel();
+      audioService.stopAmbient();
+      foregroundService.stopService();
+      notificationService.cancelAllNotifications();
     });
 
     // Listen to background actions
@@ -90,7 +97,7 @@ class TimerNotifier extends _$TimerNotifier {
     return TimerState.initial();
   }
 
-  void start() {
+  void start({bool shouldPlayPhaseAudio = true}) {
     if (state.status == TimerStatus.running) return;
 
     // Calculate target time based on remaining seconds
@@ -102,7 +109,7 @@ class TimerNotifier extends _$TimerNotifier {
     // Play configured phase sound for focus and long break only
     final isAudioEnabled = ref.read(audioEnabledNotifierProvider);
     final assetPath = _selectedPhaseAudioAssetPath;
-    if (isAudioEnabled && assetPath != null) {
+    if (shouldPlayPhaseAudio && isAudioEnabled && assetPath != null) {
       ref.read(audioServiceProvider).playAmbient(
             ambientAssetPath: assetPath,
           );
@@ -111,7 +118,7 @@ class TimerNotifier extends _$TimerNotifier {
     // Update foreground service to show "Pause" button
     final String phaseText = state.phase.name.toUpperCase();
     ref.read(foregroundServiceProvider).startService(
-          'Pomer - $phaseText',
+          phaseText,
           state.remainingSeconds.toMMSS(),
           isPaused: false,
         );
@@ -130,7 +137,7 @@ class TimerNotifier extends _$TimerNotifier {
     // Update foreground service to show "Resume" button
     final String phaseText = state.phase.name.toUpperCase();
     ref.read(foregroundServiceProvider).startService(
-          'Pomer - $phaseText (Paused)',
+          '$phaseText (Paused)',
           state.remainingSeconds.toMMSS(),
           isPaused: true,
         );
@@ -156,6 +163,7 @@ class TimerNotifier extends _$TimerNotifier {
   void _stopAuxiliaryServices() {
     ref.read(audioServiceProvider).stopAmbient();
     ref.read(foregroundServiceProvider).stopService();
+    ref.read(notificationServiceProvider).cancelAllNotifications();
   }
 
   void skip() {
@@ -177,7 +185,7 @@ class TimerNotifier extends _$TimerNotifier {
         // Update foreground service
         final String phaseText = state.phase.name.toUpperCase();
         ref.read(foregroundServiceProvider).startService(
-              'Pomer - $phaseText',
+              phaseText,
               remaining.toMMSS(),
               isPaused: state.status == TimerStatus.paused,
             );
@@ -190,24 +198,36 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void _handlePhaseTransition() {
+    final previousPhase = state.phase;
+
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
 
     ref.read(audioServiceProvider).stopAmbient();
 
+    final settingsAsync = ref.read(settingsNotifierProvider);
+    final settings = settingsAsync.valueOrNull;
     final isAudioEnabled = ref.read(audioEnabledNotifierProvider);
-    if (isAudioEnabled) {
-      ref.read(audioServiceProvider).playAlarm();
+    final useSystemNotificationSound =
+        settings?.useSystemNotificationSound ?? false;
+    final alarmAssetPath = state.phase == TimerPhase.shortBreak
+        ? 'assets/audio/alarm_x4.ogg'
+        : 'assets/audio/alarm_x1.ogg';
+
+    if (isAudioEnabled && !useSystemNotificationSound) {
+      ref.read(audioServiceProvider).playAlarm(
+            alarmAssetPath: alarmAssetPath,
+          );
     }
 
     ref.read(notificationServiceProvider).showNotification(
           id: 0,
-          title: 'Pomer Phase Complete',
-          body: 'Your ${state.phase.name} phase has finished.',
+          title: '${state.phase.label} - Done',
+          body: '',
+          playSound: isAudioEnabled && useSystemNotificationSound,
         );
 
-    final settingsAsync = ref.read(settingsNotifierProvider);
     final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
         AppConstants.defaultFocusDuration;
     final shortBreakDuration = settingsAsync.valueOrNull?.shortBreakDuration ??
@@ -223,16 +243,34 @@ class TimerNotifier extends _$TimerNotifier {
     );
 
     // Auto-start next phase logic
+    var didAutoStart = false;
     if (settingsAsync.hasValue) {
       final settings = settingsAsync.value!;
       if ((state.phase == TimerPhase.shortBreak ||
               state.phase == TimerPhase.longBreak) &&
           settings.autoStartBreaks) {
         start();
+        didAutoStart = true;
       } else if (state.phase == TimerPhase.focus &&
           settings.autoStartPomodoros) {
-        start();
+        if (previousPhase == TimerPhase.longBreak) {
+          start(shouldPlayPhaseAudio: false);
+          final focusAssetPath = _selectedPhaseAudioAssetPath;
+          if (isAudioEnabled && focusAssetPath != null) {
+            ref.read(audioServiceProvider).transitionAmbient(
+                  ambientAssetPath: focusAssetPath,
+                  transitionDuration: const Duration(seconds: 3),
+                );
+          }
+        } else {
+          start();
+        }
+        didAutoStart = true;
       }
+    }
+
+    if (!didAutoStart) {
+      ref.read(foregroundServiceProvider).stopService();
     }
   }
 

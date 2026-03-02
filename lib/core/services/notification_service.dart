@@ -13,6 +13,9 @@ NotificationService notificationService(Ref ref) {
 }
 
 class NotificationService {
+  static const String _androidChannelIdSilent = 'pomer_timer_channel_silent';
+  static const String _androidChannelIdSound = 'pomer_timer_channel_sound';
+
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   late final Future<void> _initFuture;
@@ -52,11 +55,15 @@ class NotificationService {
       macOS: initializationSettingsDarwin,
     );
 
-    await _flutterLocalNotificationsPlugin.initialize(
-      settings: initializationSettings,
-    );
+    try {
+      await _flutterLocalNotificationsPlugin.initialize(
+        settings: initializationSettings,
+      );
 
-    await requestPermissions();
+      await requestPermissions();
+    } catch (_) {
+      // Ignore when platform implementation is unavailable (e.g. widget tests).
+    }
   }
 
   Future<void> requestPermissions() async {
@@ -79,6 +86,7 @@ class NotificationService {
     required int id,
     required String title,
     required String body,
+    bool playSound = false,
   }) async {
     if (PlatformUtils.isWeb) {
       await showWebNotification(title: title, body: body);
@@ -98,25 +106,24 @@ class NotificationService {
       return;
     }
 
-    const AndroidNotificationDetails androidNotificationDetails =
-        AndroidNotificationDetails(
-      'pomer_timer_channel',
+    final androidNotificationDetails = AndroidNotificationDetails(
+      playSound ? _androidChannelIdSound : _androidChannelIdSilent,
       'Pomer Timer',
       channelDescription: 'Notifications for Pomodoro timer phases',
       importance: Importance.max,
       priority: Priority.high,
       ticker: 'ticker',
+      playSound: playSound,
       onlyAlertOnce: true,
     );
 
-    const DarwinNotificationDetails darwinNotificationDetails =
-        DarwinNotificationDetails(
+    final darwinNotificationDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
-      presentSound: true,
+      presentSound: playSound,
     );
 
-    const NotificationDetails notificationDetails = NotificationDetails(
+    final notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
       macOS:
           darwinNotificationDetails, // Adds support for Windows/macOS if applicable
@@ -134,6 +141,32 @@ class NotificationService {
       _lastNotificationId = id;
       _lastNotificationTitle = title;
       _lastNotificationBody = body;
+    } catch (_) {
+      // Ignore unsupported platform plugin calls.
+    }
+  }
+
+  Future<void> cancelNotification(int id) async {
+    if (PlatformUtils.isWeb) {
+      return;
+    }
+
+    await _initFuture;
+    try {
+      await _flutterLocalNotificationsPlugin.cancel(id: id);
+    } catch (_) {
+      // Ignore unsupported platform plugin calls.
+    }
+  }
+
+  Future<void> cancelAllNotifications() async {
+    if (PlatformUtils.isWeb) {
+      return;
+    }
+
+    await _initFuture;
+    try {
+      await _flutterLocalNotificationsPlugin.cancelAll();
     } catch (_) {
       // Ignore unsupported platform plugin calls.
     }

@@ -68,7 +68,11 @@ void main() {
       final notifier = container.read(timerNotifierProvider.notifier);
       notifier.start();
       expect(container.read(timerNotifierProvider).status, TimerStatus.running);
-      verify(mockAudioService.playAmbient(),).called(1);
+      verify(
+        mockAudioService.playAmbient(
+          ambientAssetPath: anyNamed('ambientAssetPath'),
+        ),
+      ).called(1);
     });
 
     test('pause() changes status to paused and stops services', () {
@@ -76,8 +80,12 @@ void main() {
       notifier.start();
       notifier.pause();
       expect(container.read(timerNotifierProvider).status, TimerStatus.paused);
-      verify(mockAudioService.stopAmbient(),).called(1);
-      verify(mockForegroundService.startService(any, any, isPaused: true),).called(1);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockForegroundService.startService(any, any, isPaused: true),
+      ).called(1);
     });
 
     test('reset() returns to initial state and stops services', () {
@@ -91,8 +99,12 @@ void main() {
         state.remainingSeconds,
         AppConstants.defaultFocusDuration * 60,
       );
-      verify(mockAudioService.stopAmbient(),).called(1);
-      verify(mockForegroundService.stopService(),).called(1);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockForegroundService.stopService(),
+      ).called(1);
     });
 
     test(
@@ -104,13 +116,21 @@ void main() {
       expect(state.phase, TimerPhase.shortBreak);
       expect(state.status, TimerStatus.idle);
       expect(state.completedCycles, 1);
-      verify(mockAudioService.stopAmbient(),).called(1);
-      verify(mockAudioService.playAlarm(),).called(1);
-      verify(mockNotificationService.showNotification(
-        id: anyNamed('id'),
-        title: anyNamed('title'),
-        body: anyNamed('body'),
-      ),).called(1);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockAudioService.playAlarm(
+          alarmAssetPath: 'assets/audio/alarm_x1.ogg',
+        ),
+      ).called(1);
+      verify(
+        mockNotificationService.showNotification(
+          id: anyNamed('id'),
+          title: anyNamed('title'),
+          body: anyNamed('body'),
+        ),
+      ).called(1);
     });
 
     test('skip() after 3 skips on focus advances to longBreak on 4th', () {
@@ -130,13 +150,21 @@ void main() {
       expect(state.phase, TimerPhase.longBreak);
       expect(state.completedCycles, 4);
 
-      verify(mockAudioService.stopAmbient(),).called(1);
-      verify(mockAudioService.playAlarm(),).called(1);
-      verify(mockNotificationService.showNotification(
-        id: 0,
-        title: 'Pomer Phase Complete',
-        body: 'Your focus phase has finished.',
-      ),).called(1);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockAudioService.playAlarm(
+          alarmAssetPath: 'assets/audio/alarm_x1.ogg',
+        ),
+      ).called(1);
+      verify(
+        mockNotificationService.showNotification(
+          id: 0,
+          title: 'Focus - Done',
+          body: '',
+        ),
+      ).called(1);
     });
 
     test('skip() on shortBreak advances to focus', () {
@@ -148,13 +176,21 @@ void main() {
 
       notifier.skip(); // shortBreak → focus
       expect(container.read(timerNotifierProvider).phase, TimerPhase.focus);
-      verify(mockAudioService.stopAmbient(),).called(1);
-      verify(mockAudioService.playAlarm(),).called(1);
-      verify(mockNotificationService.showNotification(
-        id: anyNamed('id'),
-        title: anyNamed('title'),
-        body: anyNamed('body'),
-      ),).called(1);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockAudioService.playAlarm(
+          alarmAssetPath: 'assets/audio/alarm_x4.ogg',
+        ),
+      ).called(1);
+      verify(
+        mockNotificationService.showNotification(
+          id: anyNamed('id'),
+          title: anyNamed('title'),
+          body: anyNamed('body'),
+        ),
+      ).called(1);
     });
 
     test('skip() on longBreak advances to focus with completedCycles reset',
@@ -174,13 +210,21 @@ void main() {
       expect(state.phase, TimerPhase.focus);
       expect(state.completedCycles, 0);
 
-      verify(mockAudioService.stopAmbient(),).called(1);
-      verify(mockAudioService.playAlarm(),).called(1);
-      verify(mockNotificationService.showNotification(
-        id: anyNamed('id'),
-        title: anyNamed('title'),
-        body: anyNamed('body'),
-      ),).called(1);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockAudioService.playAlarm(
+          alarmAssetPath: 'assets/audio/alarm_x1.ogg',
+        ),
+      ).called(1);
+      verify(
+        mockNotificationService.showNotification(
+          id: anyNamed('id'),
+          title: anyNamed('title'),
+          body: anyNamed('body'),
+        ),
+      ).called(1);
     });
 
     test('phase transition: after focus completes → shortBreak (cycles < 4)',

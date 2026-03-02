@@ -33,10 +33,16 @@ class MockAudioService extends _i1.Mock implements _i2.AudioService {
   }
 
   @override
-  _i3.Future<void> playAlarm() => (super.noSuchMethod(
+  _i3.Future<void> playAlarm({
+    String? alarmAssetPath = 'assets/audio/alarm_x1.ogg',
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #playAlarm,
           [],
+          {
+            #alarmAssetPath: alarmAssetPath,
+          },
         ),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
@@ -53,10 +59,14 @@ class MockAudioService extends _i1.Mock implements _i2.AudioService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<void> playAmbient() => (super.noSuchMethod(
+  _i3.Future<void> playAmbient({required String? ambientAssetPath}) =>
+      (super.noSuchMethod(
         Invocation.method(
           #playAmbient,
           [],
+          {
+            #ambientAssetPath: ambientAssetPath,
+          },
         ),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
@@ -67,6 +77,24 @@ class MockAudioService extends _i1.Mock implements _i2.AudioService {
         Invocation.method(
           #stopAmbient,
           [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> transitionAmbient({
+    required String? ambientAssetPath,
+    Duration? transitionDuration = const Duration(seconds: 2),
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #transitionAmbient,
+          [],
+          {
+            #ambientAssetPath: ambientAssetPath,
+            #transitionDuration: transitionDuration,
+          },
         ),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
@@ -106,6 +134,7 @@ class MockNotificationService extends _i1.Mock
     required int? id,
     required String? title,
     required String? body,
+    bool? playSound = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -115,7 +144,28 @@ class MockNotificationService extends _i1.Mock
             #id: id,
             #title: title,
             #body: body,
+            #playSound: playSound,
           },
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> cancelNotification(int? id) => (super.noSuchMethod(
+        Invocation.method(
+          #cancelNotification,
+          [id],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> cancelAllNotifications() => (super.noSuchMethod(
+        Invocation.method(
+          #cancelAllNotifications,
+          [],
         ),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
