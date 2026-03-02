@@ -5,6 +5,16 @@ allprojects {
     }
 }
 
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools:desugar_jdk_libs:2.1.4")
+    }
+}
+
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")
