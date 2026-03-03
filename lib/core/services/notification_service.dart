@@ -15,6 +15,9 @@ NotificationService notificationService(Ref ref) {
 class NotificationService {
   static const String _androidChannelIdSilent = 'pomer_timer_channel_silent';
   static const String _androidChannelIdSound = 'pomer_timer_channel_sound';
+  static const String _windowsAppName = 'Pomer';
+  static const String _windowsAppUserModelId = 'com.petersdigital.pomer';
+  static const String _windowsGuid = 'f2d6f2c8-39f0-4f11-9f5e-f6f6c6b9f0b3';
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -23,6 +26,7 @@ class NotificationService {
   int? _lastNotificationId;
   String? _lastNotificationTitle;
   String? _lastNotificationBody;
+  int _windowsNotificationCounter = 1000;
 
   static const Duration _duplicateWindow = Duration(seconds: 3);
 
@@ -46,6 +50,13 @@ class NotificationService {
       requestSoundPermission: false,
     );
 
+    const WindowsInitializationSettings initializationSettingsWindows =
+        WindowsInitializationSettings(
+      appName: _windowsAppName,
+      appUserModelId: _windowsAppUserModelId,
+      guid: _windowsGuid,
+    );
+
     // flutter_local_notifications recently added Windows/Linux settings via respective packages if needed,
     // but the plugin currently defaults to basic platform implementations if unconfigured.
     const InitializationSettings initializationSettings =
@@ -53,6 +64,7 @@ class NotificationService {
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
       macOS: initializationSettingsDarwin,
+      windows: initializationSettingsWindows,
     );
 
     try {
@@ -94,6 +106,10 @@ class NotificationService {
       return;
     }
 
+    if (PlatformUtils.isWindows) {
+      return;
+    }
+
     await _initFuture;
 
     final now = DateTime.now();
@@ -106,6 +122,10 @@ class NotificationService {
     if (isDuplicateNotification) {
       return;
     }
+
+    final normalizedBody = body.isEmpty ? 'Phase completed' : body;
+    final effectiveId =
+        PlatformUtils.isWindows ? _nextWindowsNotificationId() : id;
 
     final androidNotificationDetails = AndroidNotificationDetails(
       playSound ? _androidChannelIdSound : _androidChannelIdSilent,
@@ -126,22 +146,24 @@ class NotificationService {
 
     final notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
-      macOS:
-          darwinNotificationDetails, // Adds support for Windows/macOS if applicable
+      iOS: darwinNotificationDetails,
+      macOS: darwinNotificationDetails,
+      windows:
+          PlatformUtils.isWindows ? const WindowsNotificationDetails() : null,
       linux: null, // Depending on plugin support
     );
 
     try {
       await _flutterLocalNotificationsPlugin.show(
-        id: id,
+        id: effectiveId,
         title: title,
-        body: body,
+        body: normalizedBody,
         notificationDetails: notificationDetails,
       );
       _lastNotificationTimestamp = now;
-      _lastNotificationId = id;
+      _lastNotificationId = effectiveId;
       _lastNotificationTitle = title;
-      _lastNotificationBody = body;
+      _lastNotificationBody = normalizedBody;
     } catch (_) {
       // Ignore unsupported platform plugin calls.
     }
@@ -149,6 +171,10 @@ class NotificationService {
 
   Future<void> cancelNotification(int id) async {
     if (PlatformUtils.isWeb) {
+      return;
+    }
+
+    if (PlatformUtils.isWindows) {
       return;
     }
 
@@ -165,11 +191,23 @@ class NotificationService {
       return;
     }
 
+    if (PlatformUtils.isWindows) {
+      return;
+    }
+
     await _initFuture;
     try {
       await _flutterLocalNotificationsPlugin.cancelAll();
     } catch (_) {
       // Ignore unsupported platform plugin calls.
     }
+  }
+
+  int _nextWindowsNotificationId() {
+    _windowsNotificationCounter++;
+    if (_windowsNotificationCounter <= 0) {
+      _windowsNotificationCounter = 1000;
+    }
+    return _windowsNotificationCounter;
   }
 }
