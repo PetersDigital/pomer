@@ -70,3 +70,44 @@ app-<branch>-<shortsha>.apk
 - Telegram tokens are stored in GitHub Secrets.
 - Never commit secrets.
 - Never echo secrets in logs.
+
+---
+
+## Android Runtime Logs (Windows PowerShell 7)
+
+For debugging app behavior on Android (wireless ADB or Android Studio emulator), use:
+
+```powershell
+adb logcat -c
+$pkg = 'com.petersdigital.pomer'
+$appPid = (adb shell pidof -s $pkg).Trim()
+adb logcat --pid=$appPid -v time
+```
+
+Severity filters:
+
+```powershell
+adb logcat --pid=$appPid -v time '*:W'
+adb logcat --pid=$appPid -v time '*:E'
+```
+
+Important: use `$appPid` (not `$PID`, which is read-only in PowerShell).
+
+---
+
+## Flutter Clean Lock Errors (Windows)
+
+If `flutter clean` fails because `build/` is in use, run:
+
+```powershell
+.\android\gradlew --stop
+taskkill /F /IM java.exe /T
+taskkill /F /IM dart.exe /T
+flutter clean
+```
+
+If still locked, delete only the `build/` folder manually and then run:
+
+```powershell
+flutter pub get
+```
