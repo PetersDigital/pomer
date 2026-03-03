@@ -146,6 +146,7 @@ Breaking architectural changes require:
 - Downgrade SDK targets
 - Remove strict lints
 - Introduce cross-feature coupling
+- Override Flutter Windows runtime bundling by forcing `CMAKE_INSTALL_PREFIX` in `windows/CMakeLists.txt`
 
 ---
 
@@ -156,3 +157,34 @@ On this local development machine, use the following environment paths:
 - `GRADLE_USER_HOME` = `D:\software_dev\buildtools\gradle-cache`
 - `PUB_CACHE` = `D:\software_dev\buildtools\flutter-pub-cache`
 - `JAVA_HOME` = `C:\Program Files\Microsoft\jdk-17.0.18.8-hotspot`
+
+---
+
+# 9. Agent Release Checks Protocol
+
+Before finalizing a release-oriented PR branch, agents must execute this checklist:
+
+1. Build release notes from exact commit range (`start_sha..end_sha`):
+- `git log --oneline --reverse <start_sha>..<end_sha>`
+- `git diff --name-status <start_sha>..<end_sha>`
+
+2. Documentation alignment is mandatory:
+- Update `CHANGELOG.md` for the target version.
+- Ensure roadmap/version status in `README.md` and `ARCHITECTURE.md` is accurate.
+- Add to `AGENTS.md` only if a new, reusable guardrail was learned.
+
+3. Version consistency checks are mandatory:
+- `pubspec.yaml` version
+- `lib/core/constants/app_constants.dart` `appVersion`
+- Android `flutter.versionName` and `flutter.versionCode` values
+
+4. Validation must cover at least:
+- `flutter analyze --fatal-infos`
+- `flutter test`
+- Platform build(s) for changed targets (typically web/windows/android)
+- Smoke run on at least one impacted runtime target when feasible
+
+5. Commit hygiene:
+- Stage only intended files.
+- Use Conventional Commits.
+- Do not include version numbers in commit subjects.
