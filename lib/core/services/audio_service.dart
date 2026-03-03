@@ -51,6 +51,31 @@ class AudioService {
     if (PlatformUtils.isMobile) {
       final session = await AudioSession.instance;
       await session.configure(const AudioSessionConfiguration.music());
+      await _ambientPlayer.setAndroidAudioAttributes(
+        const AndroidAudioAttributes(
+          contentType: AndroidAudioContentType.music,
+          usage: AndroidAudioUsage.media,
+        ),
+      );
+      await _alarmPlayer.setAndroidAudioAttributes(
+        const AndroidAudioAttributes(
+          contentType: AndroidAudioContentType.sonification,
+          usage: AndroidAudioUsage.alarm,
+        ),
+      );
+    }
+  }
+
+  Future<void> _ensureAudioSessionActive() async {
+    if (!PlatformUtils.isMobile) {
+      return;
+    }
+
+    try {
+      final session = await AudioSession.instance;
+      await session.setActive(true);
+    } catch (_) {
+      // Keep playback flow resilient if session activation is unsupported.
     }
   }
 
@@ -141,12 +166,18 @@ class AudioService {
   }) async {
     try {
       await _ensureAlarmReady(alarmAssetPath: alarmAssetPath);
+      await _ensureAudioSessionActive();
       await _alarmPlayer.setVolume(1.0);
       await _alarmPlayer.seek(Duration.zero);
       await _alarmPlayer.play();
-    } catch (_) {
+    } catch (error) {
       _alarmInitFuture = null;
       _alarmReady = false;
+      developer.log(
+        'Alarm playback failed',
+        name: 'AudioService',
+        error: error,
+      );
     }
   }
 
@@ -185,6 +216,7 @@ class AudioService {
 
     await _ambientPlayer.seek(Duration.zero);
     await _ambientPlayer.setVolume(0.0);
+    await _ensureAudioSessionActive();
     unawaited(_ambientPlayer.play());
 
     for (var i = 1; i <= _fadeInSteps; i++) {
@@ -307,6 +339,7 @@ class AudioService {
       _currentAmbientAssetPath = ambientAssetPath;
       await _ambientPlayer.seek(Duration.zero);
       await _ambientPlayer.setVolume(0.0);
+      await _ensureAudioSessionActive();
       unawaited(_ambientPlayer.play());
     } catch (error) {
       _ambientReady = false;
