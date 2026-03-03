@@ -14,6 +14,7 @@ class TimerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timerState = ref.watch(timerNotifierProvider);
+    final isAudioEnabled = ref.watch(audioEnabledNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final color = phaseColor(timerState.phase, colorScheme);
 
@@ -42,14 +43,17 @@ class TimerScreen extends ConsumerWidget {
                     Align(
                       alignment: Alignment.centerRight,
                       child: IconButton(
+                        tooltip: isAudioEnabled ? 'Mute sound' : 'Unmute sound',
                         icon: Icon(
-                          ref.watch(audioEnabledNotifierProvider)
-                              ? Icons.volume_up
-                              : Icons.volume_off,
+                          isAudioEnabled ? Icons.volume_up : Icons.volume_off,
                           color: color,
+                          semanticLabel:
+                              isAudioEnabled ? 'Mute sound' : 'Unmute sound',
                         ),
                         onPressed: () {
-                          ref.read(audioEnabledNotifierProvider.notifier).toggle();
+                          ref
+                              .read(audioEnabledNotifierProvider.notifier)
+                              .toggle();
                         },
                       ),
                     ),

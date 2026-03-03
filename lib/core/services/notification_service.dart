@@ -58,6 +58,7 @@ class NotificationService {
     try {
       await _flutterLocalNotificationsPlugin.initialize(
         settings: initializationSettings,
+        onDidReceiveNotificationResponse: (details) {},
       );
 
       await requestPermissions();

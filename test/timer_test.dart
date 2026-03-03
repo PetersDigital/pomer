@@ -129,6 +129,7 @@ void main() {
           id: anyNamed('id'),
           title: anyNamed('title'),
           body: anyNamed('body'),
+          playSound: anyNamed('playSound'),
         ),
       ).called(1);
     });
@@ -163,6 +164,7 @@ void main() {
           id: 0,
           title: 'Focus - Done',
           body: '',
+          playSound: anyNamed('playSound'),
         ),
       ).called(1);
     });
@@ -189,6 +191,7 @@ void main() {
           id: anyNamed('id'),
           title: anyNamed('title'),
           body: anyNamed('body'),
+          playSound: anyNamed('playSound'),
         ),
       ).called(1);
     });
@@ -223,6 +226,7 @@ void main() {
           id: anyNamed('id'),
           title: anyNamed('title'),
           body: anyNamed('body'),
+          playSound: anyNamed('playSound'),
         ),
       ).called(1);
     });

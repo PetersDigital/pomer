@@ -26,9 +26,9 @@ class TimerNotifier extends _$TimerNotifier {
 
     ref.onDispose(() {
       _timer?.cancel();
-      audioService.stopAmbient();
-      foregroundService.stopService();
-      notificationService.cancelAllNotifications();
+      unawaited(audioService.stopAmbient());
+      unawaited(foregroundService.stopService());
+      unawaited(notificationService.cancelAllNotifications());
     });
 
     // Listen to background actions
@@ -161,9 +161,9 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void _stopAuxiliaryServices() {
-    ref.read(audioServiceProvider).stopAmbient();
-    ref.read(foregroundServiceProvider).stopService();
-    ref.read(notificationServiceProvider).cancelAllNotifications();
+    unawaited(ref.read(audioServiceProvider).stopAmbient());
+    unawaited(ref.read(foregroundServiceProvider).stopService());
+    unawaited(ref.read(notificationServiceProvider).cancelAllNotifications());
   }
 
   void skip() {
@@ -221,12 +221,18 @@ class TimerNotifier extends _$TimerNotifier {
           );
     }
 
-    ref.read(notificationServiceProvider).showNotification(
-          id: 0,
-          title: '${state.phase.label} - Done',
-          body: '',
-          playSound: isAudioEnabled && useSystemNotificationSound,
-        );
+    if (settings?.notificationsEnabled ?? true) {
+      ref.read(notificationServiceProvider).showNotification(
+            id: 0,
+            title: '${state.phase.label} - Done',
+            body: '',
+            playSound: isAudioEnabled && useSystemNotificationSound,
+          );
+    } else {
+      unawaited(
+        ref.read(notificationServiceProvider).cancelAllNotifications(),
+      );
+    }
 
     final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
         AppConstants.defaultFocusDuration;
