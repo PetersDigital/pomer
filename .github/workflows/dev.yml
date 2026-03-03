@@ -82,14 +82,7 @@ jobs:
 
       - name: Send APK to Telegram
         run: |
-          CAPTION="🛠 *Dev Build Ready*
-
-📦 File: ${{ env.FINAL_NAME }}
-🌿 Branch: ${{ github.ref_name }}
-🔖 Commit: ${GITHUB_SHA:0:7}
-
-📝 Changes:
-${{ env.CHANGELOG }}"
+          CAPTION=$(printf '🛠 *Dev Build Ready*\n\n📦 File: %s\n🌿 Branch: %s\n🔖 Commit: %s\n\n📝 Changes:\n%s' "${{ env.FINAL_NAME }}" "${{ github.ref_name }}" "${GITHUB_SHA:0:7}" "${{ env.CHANGELOG }}")
 
           curl -F chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
                -F document=@"build/app/outputs/flutter-apk/${{ env.FINAL_NAME }}" \
