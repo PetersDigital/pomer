@@ -31,6 +31,7 @@ class AudioService {
   bool _alarmReady = false;
   bool _ambientReady = false;
   bool _audioSessionConfigured = false;
+  Future<void>? _audioSessionInitFuture;
   bool _isDisposed = false;
   int _ambientOperationToken = 0;
   String? _currentAlarmAssetPath;
@@ -38,7 +39,7 @@ class AudioService {
   Future<void>? _ambientFadeOutFuture;
 
   AudioService() {
-    _configureAudioSession();
+    _audioSessionInitFuture = _configureAudioSession();
   }
 
   Future<void> _configureAudioSession() async {
@@ -46,22 +47,25 @@ class AudioService {
       return;
     }
 
-    _audioSessionConfigured = true;
-
     if (PlatformUtils.isMobile) {
       final session = await AudioSession.instance;
       await session.configure(const AudioSessionConfiguration.music());
-      await _ambientPlayer.setAndroidAudioAttributes(
-        const AndroidAudioAttributes(
-          contentType: AndroidAudioContentType.music,
-          usage: AndroidAudioUsage.media,
-        ),
-      );
-      await _alarmPlayer.setAndroidAudioAttributes(
-        const AndroidAudioAttributes(
-          contentType: AndroidAudioContentType.sonification,
-          usage: AndroidAudioUsage.alarm,
-        ),
+    }
+
+    _audioSessionConfigured = true;
+  }
+
+  Future<void> _ensureAudioSessionConfigured() async {
+    final initFuture = _audioSessionInitFuture ??= _configureAudioSession();
+    try {
+      await initFuture;
+    } catch (error) {
+      _audioSessionInitFuture = null;
+      _audioSessionConfigured = false;
+      developer.log(
+        'Audio session configuration failed',
+        name: 'AudioService',
+        error: error,
       );
     }
   }
@@ -165,6 +169,7 @@ class AudioService {
     String alarmAssetPath = 'assets/audio/alarm_x1.ogg',
   }) async {
     try {
+      await _ensureAudioSessionConfigured();
       await _ensureAlarmReady(alarmAssetPath: alarmAssetPath);
       await _ensureAudioSessionActive();
       await _alarmPlayer.setVolume(1.0);
@@ -196,6 +201,7 @@ class AudioService {
     }
 
     try {
+      await _ensureAudioSessionConfigured();
       await _ensureAmbientReady(ambientAssetPath: ambientAssetPath);
     } catch (error) {
       _ambientInitFuture = null;
@@ -283,6 +289,8 @@ class AudioService {
     required String ambientAssetPath,
     Duration transitionDuration = _defaultTransitionDuration,
   }) async {
+    await _ensureAudioSessionConfigured();
+
     if (_currentAmbientAssetPath == ambientAssetPath) {
       await playAmbient(ambientAssetPath: ambientAssetPath);
       return;
