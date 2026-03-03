@@ -56,9 +56,9 @@ class TimerNotifier extends _$TimerNotifier {
         }
       }
 
-      if (next.hasValue &&
-          state.status == TimerStatus.running) {
-        final audioPrefs = ref.read(audioPreferencesNotifierProvider).valueOrNull;
+      if (next.hasValue && state.status == TimerStatus.running) {
+        final audioPrefs =
+            ref.read(audioPreferencesNotifierProvider).valueOrNull;
         if (audioPrefs == null) return;
 
         final isFocusAudioEnabled = audioPrefs.focusAudioEnabled;
@@ -71,8 +71,12 @@ class TimerNotifier extends _$TimerNotifier {
         final longBreakTrackChanged =
             previousSettings?.longBreakTrack != currentSettings.longBreakTrack;
 
-        if ((state.phase == TimerPhase.focus && focusTrackChanged && isFocusAudioEnabled) ||
-            (state.phase == TimerPhase.longBreak && longBreakTrackChanged && isBreakAudioEnabled)) {
+        if ((state.phase == TimerPhase.focus &&
+                focusTrackChanged &&
+                isFocusAudioEnabled) ||
+            (state.phase == TimerPhase.longBreak &&
+                longBreakTrackChanged &&
+                isBreakAudioEnabled)) {
           final assetPath = _selectedPhaseAudioAssetPath;
           if (assetPath != null) {
             ref.read(audioServiceProvider).playAmbient(
@@ -87,12 +91,29 @@ class TimerNotifier extends _$TimerNotifier {
     ref.listen(audioPreferencesNotifierProvider, (previous, next) {
       if (state.status == TimerStatus.running && next.hasValue) {
         final prefs = next.value!;
+        final previousPrefs = previous?.valueOrNull;
         final assetPath = _selectedPhaseAudioAssetPath;
+
+        final focusPrefChanged =
+            previousPrefs?.focusAudioEnabled != prefs.focusAudioEnabled;
+        final breakPrefChanged =
+            previousPrefs?.breakAudioEnabled != prefs.breakAudioEnabled;
+
+        final shouldReactToChange =
+            (state.phase == TimerPhase.focus && focusPrefChanged) ||
+                ((state.phase == TimerPhase.longBreak ||
+                        state.phase == TimerPhase.shortBreak) &&
+                    breakPrefChanged);
+
+        if (!shouldReactToChange) {
+          return;
+        }
 
         bool shouldPlay = false;
         if (state.phase == TimerPhase.focus) {
           shouldPlay = prefs.focusAudioEnabled;
-        } else if (state.phase == TimerPhase.longBreak || state.phase == TimerPhase.shortBreak) {
+        } else if (state.phase == TimerPhase.longBreak ||
+            state.phase == TimerPhase.shortBreak) {
           shouldPlay = prefs.breakAudioEnabled;
         }
 
@@ -126,7 +147,8 @@ class TimerNotifier extends _$TimerNotifier {
     bool isAudioEnabledForPhase = false;
     if (state.phase == TimerPhase.focus) {
       isAudioEnabledForPhase = isFocusAudioEnabled;
-    } else if (state.phase == TimerPhase.longBreak || state.phase == TimerPhase.shortBreak) {
+    } else if (state.phase == TimerPhase.longBreak ||
+        state.phase == TimerPhase.shortBreak) {
       isAudioEnabledForPhase = isBreakAudioEnabled;
     }
 
