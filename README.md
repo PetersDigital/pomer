@@ -44,6 +44,15 @@ Pomer is a clean, Material 3 Pomodoro timer app designed to help you stay focuse
 | Charts | [fl_chart](https://pub.dev/packages/fl_chart) (v0.5.0+) |
 | Lint | [flutter_lints](https://pub.dev/packages/flutter_lints) + [riverpod_lint](https://pub.dev/packages/riverpod_lint) |
 
+## Audio Format Policy
+
+- Runtime audio is OGG-only for alarm and ambient tracks.
+- MP3 assets are deprecated and retained only as temporary legacy files.
+- New audio paths must use `.ogg` assets.
+- MP3 is deprecated because encoder padding and frame-boundary artifacts can break seamless loops.
+- OGG provides more reliable loop behavior in our runtime audio pipeline and reduces audible transition glitches.
+- Standardizing on one runtime format lowers maintenance complexity and avoids fallback-path regressions.
+
 ---
 
 ## Getting Started

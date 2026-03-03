@@ -142,6 +142,13 @@ No persistent data. Timer state is in-memory only. Theme mode defaults to system
 6. **Feature isolation** — Features must not import from other features. Cross-feature communication goes through shared providers in `core/`.
 7. **`super.key`** — Use `super.key` parameter syntax in widget constructors (Dart 3+).
 8. **Screen naming** — All route screens are named `<Feature>Screen` and live in `features/<feature>/screens/`.
+9. **Audio format** — Use `.ogg` for runtime audio playback. `.mp3` is deprecated and scheduled for removal.
+
+### Audio Format Rationale
+
+- MP3 introduces encoder padding and frame-boundary artifacts that are unsuitable for seamless ambient loops.
+- OGG gives more consistent looping behavior in our playback pipeline and improves transition quality.
+- Limiting runtime audio to one format reduces maintenance overhead and prevents mixed-format regressions.
 
 ---
 

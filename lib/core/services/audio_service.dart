@@ -17,6 +17,7 @@ AudioService audioService(Ref ref) {
 }
 
 class AudioService {
+  static const Set<String> _deprecatedAudioExtensions = {'.mp3'};
   static const int _fadeInSteps = 16;
   static const Duration _fadeInStepDuration = Duration(milliseconds: 125);
   static const int _fadeOutSteps = 16;
@@ -87,6 +88,8 @@ class AudioService {
   }
 
   Future<void> _setPlayerSource(AudioPlayer player, String assetPath) async {
+    _ensureSupportedAudioAsset(assetPath);
+
     if (!PlatformUtils.isWeb) {
       await player.setAsset(assetPath);
       return;
@@ -115,6 +118,21 @@ class AudioService {
 
     if (lastError != null) {
       throw lastError;
+    }
+  }
+
+  void _ensureSupportedAudioAsset(String assetPath) {
+    final lowerCasePath = assetPath.toLowerCase();
+    for (final extension in _deprecatedAudioExtensions) {
+      if (lowerCasePath.endsWith(extension)) {
+        developer.log(
+          'Deprecated audio format requested: $assetPath',
+          name: 'AudioService',
+        );
+        throw UnsupportedError(
+          'MP3 assets are deprecated. Use OGG assets instead.',
+        );
+      }
     }
   }
 
