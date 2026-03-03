@@ -91,6 +91,42 @@ flutter build web
 flutter build windows
 ```
 
+### Release & GitHub Pages Deployment
+
+Releases are automated via GitHub Actions using [`.github/workflows/release.yml`](.github/workflows/release.yml).
+
+- Trigger: push a SemVer tag (for example, `v0.5.0`).
+- Guardrail: release jobs run only when the tagged commit belongs to `main`.
+- Outputs: Android APK, Web ZIP, Web WASM ZIP, Windows ZIP, and a published GitHub Release.
+- Pages: the same tag pipeline also deploys the web build to GitHub Pages.
+
+Example:
+
+```bash
+git tag -s v0.5.0 -m "Release v0.5.0"
+git push origin v0.5.0
+```
+
+GitHub Pages URL:
+
+- https://petersdigital.github.io/pomer/
+
+Release checklist:
+
+1. Ensure your target commit is already on `main`.
+2. Confirm the release entry exists in `CHANGELOG.md` (matching the tag version, e.g., `## [0.5.0]`).
+3. Create and push a signed SemVer tag:
+
+```bash
+git tag -s v0.5.0 -m "Release v0.5.0"
+git push origin v0.5.0
+```
+
+4. Verify workflow results:
+  - GitHub Release contains Android/Web/Web WASM/Windows artifacts.
+  - GitHub Pages is updated at `https://petersdigital.github.io/pomer/`.
+  - Telegram notification posts release and Pages links.
+
 ### Clean Build
 If you encounter caching issues, generated file conflicts, or stale dependencies, perform a clean build:
 
@@ -195,12 +231,16 @@ Notes:
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed description of the project structure, state management approach, navigation, and coding conventions.
 
+For AI coding agent instructions (setup, testing, PR, and guardrails), see [AGENTS.md](AGENTS.md).
+
 ---
 
 ## Credits
 
-**Developer:** Dencel K Babu  
-**Company:** [PetersDigital](https://github.com/PetersDigital)
+- **LLM Prompter? Vibe-Coder? Integrator?:** [Dencel K Babu](https://github.com/dencelkbabu)
+- **Organization:** [PetersDigital](https://github.com/PetersDigital)
+
+For full tool, AI, and audio attributions, see [CREDITS.md](CREDITS.md).
 
 ---
 

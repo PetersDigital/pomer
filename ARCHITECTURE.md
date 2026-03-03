@@ -173,14 +173,24 @@ No persistent data. Timer state is in-memory only. Theme mode defaults to system
 
 ## CI/CD
 
-See `.github/workflows/ci.yml`. On every push to `main` and every PR:
+Workflows are split by intent:
 
-1. **analyze-and-test** — `flutter analyze --fatal-infos` + `flutter test`
-2. **build-android** — `flutter build apk --debug` (needs Java 17)
-3. **build-web** — `flutter build web`
-4. **build-windows** — `flutter build windows` (runs on `windows-latest`)
+1. **`ci.yml`** (push/PR to `main`)
+  - `analyze-and-test` on push + PR to `main`
+  - Debug build matrix (Android/Web/Windows) on push to `main`
 
-Build jobs only run if `analyze-and-test` passes.
+2. **`dev.yml`** (push to non-`main` branches)
+  - Runs analyze + tests
+  - Builds split Android release APK and pushes it to Telegram for rapid dev feedback
+
+3. **`release.yml`** (SemVer tag push: `vMAJOR.MINOR.PATCH`)
+  - Verifies the tagged commit belongs to `main`
+  - Runs analyze + tests
+  - Builds release artifacts: Android APK, Web, Web WASM, Windows
+  - Publishes GitHub Release assets
+  - Deploys web output to GitHub Pages (`https://petersdigital.github.io/pomer/`)
+
+Release notes are generated from the matching section in `CHANGELOG.md` for the pushed tag version.
 
 ---
 

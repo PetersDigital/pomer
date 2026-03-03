@@ -6,6 +6,40 @@ Agents must follow these rules without deviation.
 
 ---
 
+## Instruction Precedence
+
+- Direct user chat instructions override AGENTS.md.
+- The nearest AGENTS.md to the edited file takes precedence when nested AGENTS.md files exist.
+
+---
+
+## Setup Commands
+
+- Install dependencies: `flutter pub get`
+- Regenerate Riverpod/build-runner outputs when needed: `dart run build_runner build --delete-conflicting-outputs`
+- Run app (connected target): `flutter run`
+
+---
+
+## Testing Commands
+
+- Static analysis (required): `flutter analyze --fatal-infos`
+- Unit/widget tests (required): `flutter test`
+- Build validation by impacted platform:
+  - Android: `flutter build apk --debug`
+  - Web: `flutter build web`
+  - Windows: `flutter build windows`
+
+---
+
+## PR Instructions
+
+- Use Conventional Commits.
+- Do not include version numbers in commit subjects.
+- Ensure analyze + tests pass before finalizing.
+
+---
+
 # 1. Versioning & Commit Discipline
 
 We follow:
@@ -99,12 +133,15 @@ v0.3.0
 
 When a tag is pushed:
 
+- Run release workflow only if tagged commit belongs to `main`
 - Build with --release
 - Build targets:
   - Android (APK)
   - Web (wasm + standard)
   - Windows
+- Generate release notes from matching `CHANGELOG.md` version section
 - Upload artifacts to GitHub Release
+- Deploy web build to GitHub Pages (`https://petersdigital.github.io/pomer/`)
 
 Debug builds may optionally be pushed to Telegram (see CI config).
 
