@@ -74,7 +74,6 @@ class SettingsState {
     required this.autoStartBreaks,
     required this.autoStartPomodoros,
     required this.keepScreenOn,
-    required this.soundEnabled,
     required this.notificationsEnabled,
     required this.useSystemNotificationSound,
     required this.themeMode,
@@ -90,7 +89,6 @@ class SettingsState {
         autoStartBreaks: false,
         autoStartPomodoros: false,
         keepScreenOn: false,
-        soundEnabled: true,
         notificationsEnabled: true,
         useSystemNotificationSound: false,
         themeMode: ThemeMode.system,
@@ -105,7 +103,6 @@ class SettingsState {
   final bool autoStartBreaks;
   final bool autoStartPomodoros;
   final bool keepScreenOn;
-  final bool soundEnabled;
   final bool notificationsEnabled;
   final bool useSystemNotificationSound;
   final ThemeMode themeMode;
@@ -120,7 +117,6 @@ class SettingsState {
     bool? autoStartBreaks,
     bool? autoStartPomodoros,
     bool? keepScreenOn,
-    bool? soundEnabled,
     bool? notificationsEnabled,
     bool? useSystemNotificationSound,
     ThemeMode? themeMode,
@@ -135,7 +131,6 @@ class SettingsState {
       autoStartBreaks: autoStartBreaks ?? this.autoStartBreaks,
       autoStartPomodoros: autoStartPomodoros ?? this.autoStartPomodoros,
       keepScreenOn: keepScreenOn ?? this.keepScreenOn,
-      soundEnabled: soundEnabled ?? this.soundEnabled,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       useSystemNotificationSound:
           useSystemNotificationSound ?? this.useSystemNotificationSound,

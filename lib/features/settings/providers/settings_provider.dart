@@ -19,7 +19,6 @@ class SettingsNotifier extends _$SettingsNotifier {
   static const String _keyKeepScreenOn = 'keepScreenOn';
   static const String _keyThemeMode = 'themeMode';
   static const String _keySelectedPreset = 'selectedPreset';
-  static const String _keySoundEnabled = 'soundEnabled';
   static const String _keyNotificationsEnabled = 'notificationsEnabled';
   static const String _keyUseSystemNotificationSound =
       'useSystemNotificationSound';
@@ -41,7 +40,6 @@ class SettingsNotifier extends _$SettingsNotifier {
       _prefs.getBool(_keyKeepScreenOn),
       _prefs.getInt(_keyThemeMode),
       _prefs.getInt(_keySelectedPreset),
-      _prefs.getBool(_keySoundEnabled),
       _prefs.getBool(_keyNotificationsEnabled),
       _prefs.getBool(_keyUseSystemNotificationSound),
       _prefs.getInt(_keyFocusAmbientTrack),
@@ -58,13 +56,12 @@ class SettingsNotifier extends _$SettingsNotifier {
     final keepScreenOn = results[5] as bool? ?? false;
     final themeIndex = results[6] as int? ?? ThemeMode.system.index;
     final presetIndex = results[7] as int? ?? TimerPreset.classic.index;
-    final soundEnabled = results[8] as bool? ?? true;
-    final notificationsEnabled = results[9] as bool? ?? true;
-    final useSystemNotificationSound = results[10] as bool? ?? false;
+    final notificationsEnabled = results[8] as bool? ?? true;
+    final useSystemNotificationSound = results[9] as bool? ?? false;
     final focusAmbientTrackIndex =
-        results[11] as int? ?? FocusAmbientTrack.stream.index;
+        results[10] as int? ?? FocusAmbientTrack.stream.index;
     final longBreakTrackIndex =
-        results[12] as int? ?? LongBreakTrack.easyGoing.index;
+        results[11] as int? ?? LongBreakTrack.easyGoing.index;
     final focusAmbientTrack = focusAmbientTrackIndex >= 0 &&
             focusAmbientTrackIndex < FocusAmbientTrack.values.length
         ? FocusAmbientTrack.values[focusAmbientTrackIndex]
@@ -81,7 +78,6 @@ class SettingsNotifier extends _$SettingsNotifier {
       autoStartBreaks: autoStartBreaks,
       autoStartPomodoros: autoStartPomodoros,
       keepScreenOn: keepScreenOn,
-      soundEnabled: soundEnabled,
       notificationsEnabled: notificationsEnabled,
       useSystemNotificationSound: useSystemNotificationSound,
       themeMode: ThemeMode.values[themeIndex],
@@ -153,11 +149,6 @@ class SettingsNotifier extends _$SettingsNotifier {
   Future<void> toggleKeepScreenOn(bool value) async {
     await _prefs.setBool(_keyKeepScreenOn, value);
     state = AsyncData(state.value!.copyWith(keepScreenOn: value));
-  }
-
-  Future<void> toggleSoundEnabled(bool value) async {
-    await _prefs.setBool(_keySoundEnabled, value);
-    state = AsyncData(state.value!.copyWith(soundEnabled: value));
   }
 
   Future<void> toggleNotificationsEnabled(bool value) async {

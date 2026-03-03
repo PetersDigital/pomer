@@ -207,13 +207,6 @@ class SettingsScreen extends ConsumerWidget {
               ),
         ),
         SwitchListTile(
-          title: const Text('Sound Enabled'),
-          value: settings.soundEnabled,
-          onChanged: (val) {
-            ref.read(settingsNotifierProvider.notifier).toggleSoundEnabled(val);
-          },
-        ),
-        SwitchListTile(
           title: const Text('Notifications Enabled'),
           value: settings.notificationsEnabled,
           onChanged: (val) {
@@ -243,15 +236,13 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 )
                 .toList(),
-            onChanged: settings.soundEnabled
-                ? (track) {
-                    if (track != null) {
-                      ref
-                          .read(settingsNotifierProvider.notifier)
-                          .setFocusAmbientTrack(track);
-                    }
-                  }
-                : null,
+            onChanged: (track) {
+              if (track != null) {
+                ref
+                    .read(settingsNotifierProvider.notifier)
+                    .setFocusAmbientTrack(track);
+              }
+            },
           ),
         ),
         ListTile(
@@ -266,15 +257,13 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 )
                 .toList(),
-            onChanged: settings.soundEnabled
-                ? (track) {
-                    if (track != null) {
-                      ref
-                          .read(settingsNotifierProvider.notifier)
-                          .setLongBreakTrack(track);
-                    }
-                  }
-                : null,
+            onChanged: (track) {
+              if (track != null) {
+                ref
+                    .read(settingsNotifierProvider.notifier)
+                    .setLongBreakTrack(track);
+              }
+            },
           ),
         ),
       ],

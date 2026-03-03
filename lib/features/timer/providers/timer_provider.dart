@@ -8,7 +8,7 @@ import 'package:pomer/features/timer/models/timer_state.dart';
 import 'package:pomer/core/services/audio_service.dart';
 import 'package:pomer/core/services/notification_service.dart';
 import 'package:pomer/core/services/foreground_service.dart';
-import 'package:pomer/features/timer/providers/audio_enabled_provider.dart';
+import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
 
 part 'timer_provider.g.dart';
@@ -57,8 +57,13 @@ class TimerNotifier extends _$TimerNotifier {
       }
 
       if (next.hasValue &&
-          state.status == TimerStatus.running &&
-          ref.read(audioEnabledNotifierProvider)) {
+          state.status == TimerStatus.running) {
+        final audioPrefs = ref.read(audioPreferencesNotifierProvider).valueOrNull;
+        if (audioPrefs == null) return;
+
+        final isFocusAudioEnabled = audioPrefs.focusAudioEnabled;
+        final isBreakAudioEnabled = audioPrefs.breakAudioEnabled;
+
         final previousSettings = previous?.valueOrNull;
         final currentSettings = next.value!;
         final focusTrackChanged = previousSettings?.focusAmbientTrack !=
@@ -66,8 +71,8 @@ class TimerNotifier extends _$TimerNotifier {
         final longBreakTrackChanged =
             previousSettings?.longBreakTrack != currentSettings.longBreakTrack;
 
-        if ((state.phase == TimerPhase.focus && focusTrackChanged) ||
-            (state.phase == TimerPhase.longBreak && longBreakTrackChanged)) {
+        if ((state.phase == TimerPhase.focus && focusTrackChanged && isFocusAudioEnabled) ||
+            (state.phase == TimerPhase.longBreak && longBreakTrackChanged && isBreakAudioEnabled)) {
           final assetPath = _selectedPhaseAudioAssetPath;
           if (assetPath != null) {
             ref.read(audioServiceProvider).playAmbient(
@@ -78,16 +83,23 @@ class TimerNotifier extends _$TimerNotifier {
       }
     });
 
-    // Listen to audio enabled toggle dynamically
-    ref.listen(audioEnabledNotifierProvider, (previous, next) {
-      if (state.status == TimerStatus.running) {
-        if (next) {
-          final assetPath = _selectedPhaseAudioAssetPath;
-          if (assetPath != null) {
-            ref.read(audioServiceProvider).playAmbient(
-                  ambientAssetPath: assetPath,
-                );
-          }
+    // Listen to audio preferences dynamically
+    ref.listen(audioPreferencesNotifierProvider, (previous, next) {
+      if (state.status == TimerStatus.running && next.hasValue) {
+        final prefs = next.value!;
+        final assetPath = _selectedPhaseAudioAssetPath;
+
+        bool shouldPlay = false;
+        if (state.phase == TimerPhase.focus) {
+          shouldPlay = prefs.focusAudioEnabled;
+        } else if (state.phase == TimerPhase.longBreak || state.phase == TimerPhase.shortBreak) {
+          shouldPlay = prefs.breakAudioEnabled;
+        }
+
+        if (shouldPlay && assetPath != null) {
+          ref.read(audioServiceProvider).playAmbient(
+                ambientAssetPath: assetPath,
+              );
         } else {
           ref.read(audioServiceProvider).stopAmbient();
         }
@@ -107,9 +119,19 @@ class TimerNotifier extends _$TimerNotifier {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
 
     // Play configured phase sound for focus and long break only
-    final isAudioEnabled = ref.read(audioEnabledNotifierProvider);
+    final audioPrefs = ref.read(audioPreferencesNotifierProvider).valueOrNull;
+    final isFocusAudioEnabled = audioPrefs?.focusAudioEnabled ?? true;
+    final isBreakAudioEnabled = audioPrefs?.breakAudioEnabled ?? true;
+
+    bool isAudioEnabledForPhase = false;
+    if (state.phase == TimerPhase.focus) {
+      isAudioEnabledForPhase = isFocusAudioEnabled;
+    } else if (state.phase == TimerPhase.longBreak || state.phase == TimerPhase.shortBreak) {
+      isAudioEnabledForPhase = isBreakAudioEnabled;
+    }
+
     final assetPath = _selectedPhaseAudioAssetPath;
-    if (shouldPlayPhaseAudio && isAudioEnabled && assetPath != null) {
+    if (shouldPlayPhaseAudio && isAudioEnabledForPhase && assetPath != null) {
       ref.read(audioServiceProvider).playAmbient(
             ambientAssetPath: assetPath,
           );
@@ -208,14 +230,16 @@ class TimerNotifier extends _$TimerNotifier {
 
     final settingsAsync = ref.read(settingsNotifierProvider);
     final settings = settingsAsync.valueOrNull;
-    final isAudioEnabled = ref.read(audioEnabledNotifierProvider);
+    final audioPrefs = ref.read(audioPreferencesNotifierProvider).valueOrNull;
+    final isAlarmAudioEnabled = audioPrefs?.alarmAudioEnabled ?? true;
+
     final useSystemNotificationSound =
         settings?.useSystemNotificationSound ?? false;
     final alarmAssetPath = state.phase == TimerPhase.shortBreak
         ? 'assets/audio/alarm_x4.ogg'
         : 'assets/audio/alarm_x1.ogg';
 
-    if (isAudioEnabled && !useSystemNotificationSound) {
+    if (isAlarmAudioEnabled && !useSystemNotificationSound) {
       ref.read(audioServiceProvider).playAlarm(
             alarmAssetPath: alarmAssetPath,
           );
@@ -226,7 +250,7 @@ class TimerNotifier extends _$TimerNotifier {
             id: 0,
             title: '${state.phase.label} - Done',
             body: '',
-            playSound: isAudioEnabled && useSystemNotificationSound,
+            playSound: isAlarmAudioEnabled && useSystemNotificationSound,
           );
     } else {
       unawaited(
@@ -262,7 +286,7 @@ class TimerNotifier extends _$TimerNotifier {
         if (previousPhase == TimerPhase.longBreak) {
           start(shouldPlayPhaseAudio: false);
           final focusAssetPath = _selectedPhaseAudioAssetPath;
-          if (isAudioEnabled && focusAssetPath != null) {
+          if (audioPrefs?.focusAudioEnabled == true && focusAssetPath != null) {
             ref.read(audioServiceProvider).transitionAmbient(
                   ambientAssetPath: focusAssetPath,
                   transitionDuration: const Duration(seconds: 3),
