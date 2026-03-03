@@ -3,8 +3,10 @@ name: Dev CI & Telegram
 on:
   push:
     branches-ignore: [main]
-  pull_request:
-    branches-ignore: [main]
+
+concurrency:
+  group: dev-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -80,8 +82,17 @@ jobs:
 
       - name: Send APK to Telegram
         run: |
-          CAPTION="🛠 Dev Build: ${{ env.FINAL_NAME }}%0A%0AChanges:%0A${{ env.CHANGELOG }}"
+          CAPTION="🛠 *Dev Build Ready*
+
+📦 File: ${{ env.FINAL_NAME }}
+🌿 Branch: ${{ github.ref_name }}
+🔖 Commit: ${GITHUB_SHA:0:7}
+
+📝 Changes:
+${{ env.CHANGELOG }}"
+
           curl -F chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
                -F document=@"build/app/outputs/flutter-apk/${{ env.FINAL_NAME }}" \
-               -F caption="$CAPTION" \
+               -F parse_mode="Markdown" \
+               --form-string caption="$CAPTION" \
                https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendDocument
