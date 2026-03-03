@@ -105,6 +105,31 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 ```
 
+If `flutter clean` fails on Windows with:
+
+```text
+Failed to remove build. A program may still be using a file in the directory...
+```
+
+Use this PowerShell 7 sequence from project root:
+
+```powershell
+.\android\gradlew --stop
+taskkill /F /IM java.exe /T
+taskkill /F /IM dart.exe /T
+
+flutter clean
+```
+
+If it still fails:
+
+```powershell
+# Delete only the build folder manually (do not delete the whole project)
+Remove-Item .\build -Recurse -Force
+
+flutter pub get
+```
+
 ### Running Tests
 
 ```bash
@@ -116,6 +141,38 @@ flutter test
 ```bash
 flutter analyze --fatal-infos
 ```
+
+### Android Log Capture (Windows + PowerShell 7)
+
+Use this when testing on a physical Android device over ADB wireless or on an Android Studio emulator.
+
+```powershell
+# Clear old logs
+adb logcat -c
+
+# App package
+$pkg = 'com.petersdigital.pomer'
+
+# Get app PID after launching the app
+$appPid = (adb shell pidof -s $pkg).Trim()
+
+# Full log stream for this app process
+adb logcat --pid=$appPid -v time
+```
+
+Filter by severity:
+
+```powershell
+# Warnings and Errors only
+adb logcat --pid=$appPid -v time '*:W'
+
+# Errors only
+adb logcat --pid=$appPid -v time '*:E'
+```
+
+Notes:
+- Works for both wireless ADB devices and Android Studio emulators on Windows.
+- In PowerShell, use `$appPid` (do not use `$PID`, which is a built-in read-only variable).
 
 ---
 
