@@ -26,72 +26,87 @@ class TimerScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: Column(
               children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Align(
-                      alignment: Alignment.center,
-                      child: Chip(
-                        label: Text(timerState.phase.label),
-                        backgroundColor: color.withAlpha(40),
-                        labelStyle: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.w600,
+                Chip(
+                  label: Text(timerState.phase.label),
+                  backgroundColor: color.withAlpha(40),
+                  labelStyle: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                audioPrefsAsync.when(
+                  data: (prefs) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: prefs.focusAudioEnabled
+                              ? 'Mute Focus Music'
+                              : 'Unmute Focus Music',
+                          icon: Icon(
+                            prefs.focusAudioEnabled
+                                ? Icons.headphones
+                                : Icons.headphones_outlined,
+                            color: prefs.focusAudioEnabled
+                                ? color
+                                : colorScheme.onSurfaceVariant.withAlpha(120),
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            ref
+                                .read(audioPreferencesNotifierProvider.notifier)
+                                .toggleFocusAudio();
+                          },
                         ),
-                      ),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: audioPrefsAsync.when(
-                        data: (prefs) {
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: prefs.focusAudioEnabled ? 'Mute Focus Music' : 'Unmute Focus Music',
-                                icon: Icon(
-                                  prefs.focusAudioEnabled ? Icons.headphones : Icons.headphones_outlined,
-                                  color: prefs.focusAudioEnabled ? color : colorScheme.onSurfaceVariant.withAlpha(120),
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  ref.read(audioPreferencesNotifierProvider.notifier).toggleFocusAudio();
-                                },
-                              ),
-                              IconButton(
-                                tooltip: prefs.breakAudioEnabled ? 'Mute Break Music' : 'Unmute Break Music',
-                                icon: Icon(
-                                  prefs.breakAudioEnabled ? Icons.coffee : Icons.coffee_outlined,
-                                  color: prefs.breakAudioEnabled ? color : colorScheme.onSurfaceVariant.withAlpha(120),
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  ref.read(audioPreferencesNotifierProvider.notifier).toggleBreakAudio();
-                                },
-                              ),
-                              IconButton(
-                                tooltip: prefs.alarmAudioEnabled ? 'Mute Alarm' : 'Unmute Alarm',
-                                icon: Icon(
-                                  prefs.alarmAudioEnabled ? Icons.alarm : Icons.alarm_off,
-                                  color: prefs.alarmAudioEnabled ? color : colorScheme.onSurfaceVariant.withAlpha(120),
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  ref.read(audioPreferencesNotifierProvider.notifier).toggleAlarmAudio();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                        loading: () => const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                        IconButton(
+                          tooltip: prefs.breakAudioEnabled
+                              ? 'Mute Break Music'
+                              : 'Unmute Break Music',
+                          icon: Icon(
+                            prefs.breakAudioEnabled
+                                ? Icons.coffee
+                                : Icons.coffee_outlined,
+                            color: prefs.breakAudioEnabled
+                                ? color
+                                : colorScheme.onSurfaceVariant.withAlpha(120),
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            ref
+                                .read(audioPreferencesNotifierProvider.notifier)
+                                .toggleBreakAudio();
+                          },
                         ),
-                        error: (_, __) => const SizedBox.shrink(),
-                      ),
-                    ),
-                  ],
+                        IconButton(
+                          tooltip: prefs.alarmAudioEnabled
+                              ? 'Mute Alarm'
+                              : 'Unmute Alarm',
+                          icon: Icon(
+                            prefs.alarmAudioEnabled
+                                ? Icons.alarm
+                                : Icons.alarm_off,
+                            color: prefs.alarmAudioEnabled
+                                ? color
+                                : colorScheme.onSurfaceVariant.withAlpha(120),
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            ref
+                                .read(audioPreferencesNotifierProvider.notifier)
+                                .toggleAlarmAudio();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                  loading: () => const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  error: (_, __) => const SizedBox.shrink(),
                 ),
                 const Spacer(),
                 const TimerDisplay(),
