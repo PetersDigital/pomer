@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pomer/core/utils/platform_utils.dart';
 import 'package:pomer/core/services/web_notification_helper.dart';
+import 'package:pomer/core/services/windows_notification_helper.dart';
 
 part 'notification_service.g.dart';
 
@@ -15,9 +16,6 @@ NotificationService notificationService(Ref ref) {
 class NotificationService {
   static const String _androidChannelIdSilent = 'pomer_timer_channel_silent';
   static const String _androidChannelIdSound = 'pomer_timer_channel_sound';
-  static const String _windowsAppName = 'Pomer';
-  static const String _windowsAppUserModelId = 'com.petersdigital.pomer';
-  static const String _windowsGuid = 'f2d6f2c8-39f0-4f11-9f5e-f6f6c6b9f0b3';
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -39,10 +37,14 @@ class NotificationService {
       return;
     }
 
+    if (PlatformUtils.isWindows) {
+      await initWindowsNotifications();
+      return;
+    }
+
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Currently no iOS/macOS support planned, but this satisfies the config
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
       requestAlertPermission: false,
@@ -50,21 +52,11 @@ class NotificationService {
       requestSoundPermission: false,
     );
 
-    const WindowsInitializationSettings initializationSettingsWindows =
-        WindowsInitializationSettings(
-      appName: _windowsAppName,
-      appUserModelId: _windowsAppUserModelId,
-      guid: _windowsGuid,
-    );
-
-    // flutter_local_notifications recently added Windows/Linux settings via respective packages if needed,
-    // but the plugin currently defaults to basic platform implementations if unconfigured.
     const InitializationSettings initializationSettings =
         InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
       macOS: initializationSettingsDarwin,
-      windows: initializationSettingsWindows,
     );
 
     try {
@@ -85,13 +77,12 @@ class NotificationService {
       return;
     }
 
-    // Permission handler handles mostly mobile. On windows/web this may no-op or throw, so catch it.
     try {
       if (await Permission.notification.isDenied) {
         await Permission.notification.request();
       }
     } catch (e) {
-      // Ignored for platforms where Permission.notification is not implemented (e.g. some Desktop/Web)
+      // Ignore unsupported platform permission checks
     }
   }
 
@@ -107,6 +98,8 @@ class NotificationService {
     }
 
     if (PlatformUtils.isWindows) {
+      await _initFuture;
+      await showWindowsNotification(title: title, body: body);
       return;
     }
 
@@ -148,9 +141,7 @@ class NotificationService {
       android: androidNotificationDetails,
       iOS: darwinNotificationDetails,
       macOS: darwinNotificationDetails,
-      windows:
-          PlatformUtils.isWindows ? const WindowsNotificationDetails() : null,
-      linux: null, // Depending on plugin support
+      linux: null,
     );
 
     try {
