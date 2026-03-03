@@ -5,7 +5,7 @@ import 'package:pomer/features/timer/providers/timer_provider.dart';
 import 'package:pomer/features/timer/widgets/phase_utils.dart';
 import 'package:pomer/features/timer/widgets/timer_controls.dart';
 import 'package:pomer/features/timer/widgets/timer_display.dart';
-import 'package:pomer/features/timer/providers/audio_enabled_provider.dart';
+import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 
 /// Full Pomodoro timer screen — v0.4.0.
 class TimerScreen extends ConsumerWidget {
@@ -14,7 +14,7 @@ class TimerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timerState = ref.watch(timerNotifierProvider);
-    final isAudioEnabled = ref.watch(audioEnabledNotifierProvider);
+    final audioPrefsAsync = ref.watch(audioPreferencesNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final color = phaseColor(timerState.phase, colorScheme);
 
@@ -42,19 +42,53 @@ class TimerScreen extends ConsumerWidget {
                     ),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: IconButton(
-                        tooltip: isAudioEnabled ? 'Mute sound' : 'Unmute sound',
-                        icon: Icon(
-                          isAudioEnabled ? Icons.volume_up : Icons.volume_off,
-                          color: color,
-                          semanticLabel:
-                              isAudioEnabled ? 'Mute sound' : 'Unmute sound',
-                        ),
-                        onPressed: () {
-                          ref
-                              .read(audioEnabledNotifierProvider.notifier)
-                              .toggle();
+                      child: audioPrefsAsync.when(
+                        data: (prefs) {
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: prefs.focusAudioEnabled ? 'Mute Focus Music' : 'Unmute Focus Music',
+                                icon: Icon(
+                                  prefs.focusAudioEnabled ? Icons.headphones : Icons.headphones_outlined,
+                                  color: prefs.focusAudioEnabled ? color : colorScheme.onSurfaceVariant.withAlpha(120),
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  ref.read(audioPreferencesNotifierProvider.notifier).toggleFocusAudio();
+                                },
+                              ),
+                              IconButton(
+                                tooltip: prefs.breakAudioEnabled ? 'Mute Break Music' : 'Unmute Break Music',
+                                icon: Icon(
+                                  prefs.breakAudioEnabled ? Icons.coffee : Icons.coffee_outlined,
+                                  color: prefs.breakAudioEnabled ? color : colorScheme.onSurfaceVariant.withAlpha(120),
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  ref.read(audioPreferencesNotifierProvider.notifier).toggleBreakAudio();
+                                },
+                              ),
+                              IconButton(
+                                tooltip: prefs.alarmAudioEnabled ? 'Mute Alarm' : 'Unmute Alarm',
+                                icon: Icon(
+                                  prefs.alarmAudioEnabled ? Icons.alarm : Icons.alarm_off,
+                                  color: prefs.alarmAudioEnabled ? color : colorScheme.onSurfaceVariant.withAlpha(120),
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  ref.read(audioPreferencesNotifierProvider.notifier).toggleAlarmAudio();
+                                },
+                              ),
+                            ],
+                          );
                         },
+                        loading: () => const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        error: (_, __) => const SizedBox.shrink(),
                       ),
                     ),
                   ],

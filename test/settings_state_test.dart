@@ -14,7 +14,6 @@ void main() {
       expect(state.autoStartBreaks, isFalse);
       expect(state.autoStartPomodoros, isFalse);
       expect(state.keepScreenOn, isFalse);
-      expect(state.soundEnabled, isTrue);
       expect(state.notificationsEnabled, isTrue);
       expect(state.useSystemNotificationSound, isFalse);
       expect(state.themeMode, ThemeMode.system);
@@ -40,7 +39,6 @@ void main() {
       expect(state.autoStartBreaks, isTrue);
       expect(state.autoStartPomodoros, isFalse);
       expect(state.keepScreenOn, isFalse);
-      expect(state.soundEnabled, isTrue);
       expect(state.notificationsEnabled, isTrue);
       expect(state.useSystemNotificationSound, isTrue);
       expect(state.themeMode, ThemeMode.dark);
