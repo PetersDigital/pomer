@@ -33,16 +33,13 @@ class MockAudioService extends _i1.Mock implements _i2.AudioService {
   }
 
   @override
-  _i3.Future<void> playAlarm({
-    String? alarmAssetPath = 'assets/audio/alarm_x1.ogg',
-  }) =>
+  _i3.Future<void> playAlarm(
+          {String? alarmAssetPath = 'assets/audio/alarm_x1.ogg'}) =>
       (super.noSuchMethod(
         Invocation.method(
           #playAlarm,
           [],
-          {
-            #alarmAssetPath: alarmAssetPath,
-          },
+          {#alarmAssetPath: alarmAssetPath},
         ),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
@@ -64,9 +61,7 @@ class MockAudioService extends _i1.Mock implements _i2.AudioService {
         Invocation.method(
           #playAmbient,
           [],
-          {
-            #ambientAssetPath: ambientAssetPath,
-          },
+          {#ambientAssetPath: ambientAssetPath},
         ),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
