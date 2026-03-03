@@ -5,7 +5,15 @@ import 'package:pomer/core/constants/app_constants.dart';
 import 'package:pomer/features/timer/models/timer_state.dart';
 import 'package:pomer/features/timer/providers/timer_provider.dart';
 import 'package:pomer/features/timer/screens/timer_screen.dart';
+import 'package:pomer/core/services/audio_service.dart';
+import 'package:pomer/core/services/notification_service.dart';
+import 'package:pomer/core/services/foreground_service.dart';
+import 'package:mockito/mockito.dart';
 
+import 'package:mockito/annotations.dart';
+import 'timer_test.mocks.dart';
+
+@GenerateMocks([AudioService, NotificationService, ForegroundService])
 void main() {
   group('TimerState', () {
     test('initial() has correct defaults', () {
@@ -31,29 +39,56 @@ void main() {
 
   group('TimerNotifier', () {
     late ProviderContainer container;
+    late MockAudioService mockAudioService;
+    late MockNotificationService mockNotificationService;
+    late MockForegroundService mockForegroundService;
 
     setUp(() {
-      container = ProviderContainer();
+      mockAudioService = MockAudioService();
+      mockNotificationService = MockNotificationService();
+      mockForegroundService = MockForegroundService();
+
+      container = ProviderContainer(
+        overrides: [
+          audioServiceProvider.overrideWithValue(mockAudioService),
+          notificationServiceProvider
+              .overrideWithValue(mockNotificationService),
+          foregroundServiceProvider.overrideWithValue(mockForegroundService),
+        ],
+      );
     });
 
     tearDown(() {
       container.dispose();
     });
 
-    test('start() changes status to running', () {
+    test(
+        'start() changes status to running and plays ambient sound if in focus and audio enabled',
+        () {
       final notifier = container.read(timerNotifierProvider.notifier);
       notifier.start();
       expect(container.read(timerNotifierProvider).status, TimerStatus.running);
+      verify(
+        mockAudioService.playAmbient(
+          ambientAssetPath: anyNamed('ambientAssetPath'),
+        ),
+      ).called(1);
     });
 
-    test('pause() changes status to paused', () {
+    test('pause() changes status to paused and stops services', () {
       final notifier = container.read(timerNotifierProvider.notifier);
       notifier.start();
       notifier.pause();
       expect(container.read(timerNotifierProvider).status, TimerStatus.paused);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockForegroundService.startService(any, any, isPaused: true),
+      ).called(1);
     });
 
-    test('reset() returns to initial state', () {
+    test('reset() returns to initial state and stops services', () {
       final notifier = container.read(timerNotifierProvider.notifier);
       notifier.start();
       notifier.reset();
@@ -64,15 +99,39 @@ void main() {
         state.remainingSeconds,
         AppConstants.defaultFocusDuration * 60,
       );
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockForegroundService.stopService(),
+      ).called(1);
     });
 
-    test('skip() on focus advances to shortBreak when cycles < 4', () {
+    test(
+        'skip() on focus advances to shortBreak when cycles < 4 and triggers notification/alarm',
+        () {
       final notifier = container.read(timerNotifierProvider.notifier);
       notifier.skip();
       final state = container.read(timerNotifierProvider);
       expect(state.phase, TimerPhase.shortBreak);
       expect(state.status, TimerStatus.idle);
       expect(state.completedCycles, 1);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockAudioService.playAlarm(
+          alarmAssetPath: 'assets/audio/alarm_x1.ogg',
+        ),
+      ).called(1);
+      verify(
+        mockNotificationService.showNotification(
+          id: anyNamed('id'),
+          title: anyNamed('title'),
+          body: anyNamed('body'),
+          playSound: anyNamed('playSound'),
+        ),
+      ).called(1);
     });
 
     test('skip() after 3 skips on focus advances to longBreak on 4th', () {
@@ -82,18 +141,59 @@ void main() {
         notifier.skip(); // focus → shortBreak
         notifier.skip(); // shortBreak → focus
       }
+      // Clear interactions from previous skips so we can verify the 4th skip cleanly.
+      clearInteractions(mockAudioService);
+      clearInteractions(mockNotificationService);
+
       // Now completedCycles == 3; skip focus → longBreak.
       notifier.skip();
       final state = container.read(timerNotifierProvider);
       expect(state.phase, TimerPhase.longBreak);
       expect(state.completedCycles, 4);
+
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockAudioService.playAlarm(
+          alarmAssetPath: 'assets/audio/alarm_x1.ogg',
+        ),
+      ).called(1);
+      verify(
+        mockNotificationService.showNotification(
+          id: 0,
+          title: 'Focus - Done',
+          body: '',
+          playSound: anyNamed('playSound'),
+        ),
+      ).called(1);
     });
 
     test('skip() on shortBreak advances to focus', () {
       final notifier = container.read(timerNotifierProvider.notifier);
       notifier.skip(); // focus → shortBreak
+
+      clearInteractions(mockAudioService);
+      clearInteractions(mockNotificationService);
+
       notifier.skip(); // shortBreak → focus
       expect(container.read(timerNotifierProvider).phase, TimerPhase.focus);
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockAudioService.playAlarm(
+          alarmAssetPath: 'assets/audio/alarm_x4.ogg',
+        ),
+      ).called(1);
+      verify(
+        mockNotificationService.showNotification(
+          id: anyNamed('id'),
+          title: anyNamed('title'),
+          body: anyNamed('body'),
+          playSound: anyNamed('playSound'),
+        ),
+      ).called(1);
     });
 
     test('skip() on longBreak advances to focus with completedCycles reset',
@@ -104,10 +204,31 @@ void main() {
         notifier.skip(); // shortBreak → focus
       }
       notifier.skip(); // 4th focus → longBreak
+
+      clearInteractions(mockAudioService);
+      clearInteractions(mockNotificationService);
+
       notifier.skip(); // longBreak → focus
       final state = container.read(timerNotifierProvider);
       expect(state.phase, TimerPhase.focus);
       expect(state.completedCycles, 0);
+
+      verify(
+        mockAudioService.stopAmbient(),
+      ).called(1);
+      verify(
+        mockAudioService.playAlarm(
+          alarmAssetPath: 'assets/audio/alarm_x1.ogg',
+        ),
+      ).called(1);
+      verify(
+        mockNotificationService.showNotification(
+          id: anyNamed('id'),
+          title: anyNamed('title'),
+          body: anyNamed('body'),
+          playSound: anyNamed('playSound'),
+        ),
+      ).called(1);
     });
 
     test('phase transition: after focus completes → shortBreak (cycles < 4)',
@@ -152,9 +273,19 @@ void main() {
 
   group('TimerScreen widget', () {
     testWidgets('renders time display and Start button', (tester) async {
+      final mockAudioService = MockAudioService();
+      final mockNotificationService = MockNotificationService();
+      final mockForegroundService = MockForegroundService();
+
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(
+        ProviderScope(
+          overrides: [
+            audioServiceProvider.overrideWithValue(mockAudioService),
+            notificationServiceProvider
+                .overrideWithValue(mockNotificationService),
+            foregroundServiceProvider.overrideWithValue(mockForegroundService),
+          ],
+          child: const MaterialApp(
             home: Scaffold(body: TimerScreen()),
           ),
         ),

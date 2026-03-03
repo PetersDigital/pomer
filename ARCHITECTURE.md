@@ -142,6 +142,13 @@ No persistent data. Timer state is in-memory only. Theme mode defaults to system
 6. **Feature isolation** — Features must not import from other features. Cross-feature communication goes through shared providers in `core/`.
 7. **`super.key`** — Use `super.key` parameter syntax in widget constructors (Dart 3+).
 8. **Screen naming** — All route screens are named `<Feature>Screen` and live in `features/<feature>/screens/`.
+9. **Audio format** — Use `.ogg` for runtime audio playback. `.mp3` is deprecated and scheduled for removal.
+
+### Audio Format Rationale
+
+- MP3 introduces encoder padding and frame-boundary artifacts that are unsuitable for seamless ambient loops.
+- OGG gives more consistent looping behavior in our playback pipeline and improves transition quality.
+- Limiting runtime audio to one format reduces maintenance overhead and prevents mixed-format regressions.
 
 ---
 
@@ -184,7 +191,7 @@ Build jobs only run if `analyze-and-test` passes.
 | v0.1.0 ✅ | Project Foundation — Flutter setup, navigation shell, theming |
 | v0.2.0 ✅ | Core Timer Engine — Timer countdown, phase transitions, play/pause/reset/skip, cycle tracking |
 | v0.3.0 ✅ | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
-| v0.4.0 | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
+| v0.4.0 ✅ | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
 | v0.5.0 | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
 | v0.6.0 | Task Tracking — Task binding, task list, tags, task-filtered statistics |
 | v0.7.0 | Gamification — Plant rewards, garden collection, streaks, unlock progression |

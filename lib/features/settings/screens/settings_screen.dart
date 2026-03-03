@@ -25,6 +25,8 @@ class SettingsScreen extends ConsumerWidget {
             const Divider(),
             _buildTogglesSection(context, ref, settings),
             const Divider(),
+            _buildAudioNotificationsSection(context, ref, settings),
+            const Divider(),
             _buildAppearanceSection(context, ref, settings),
             const SizedBox(height: 32),
             Center(
@@ -190,6 +192,84 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildAudioNotificationsSection(
+    BuildContext context,
+    WidgetRef ref,
+    SettingsState settings,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Audio & Notifications',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+        ),
+        SwitchListTile(
+          title: const Text('Notifications Enabled'),
+          value: settings.notificationsEnabled,
+          onChanged: (val) {
+            ref
+                .read(settingsNotifierProvider.notifier)
+                .toggleNotificationsEnabled(val);
+          },
+        ),
+        SwitchListTile(
+          title: const Text('Use System Notification Sound'),
+          value: settings.useSystemNotificationSound,
+          onChanged: (val) {
+            ref
+                .read(settingsNotifierProvider.notifier)
+                .toggleUseSystemNotificationSound(val);
+          },
+        ),
+        ListTile(
+          title: const Text('Focus Ambient Track'),
+          trailing: DropdownButton<FocusAmbientTrack>(
+            value: settings.focusAmbientTrack,
+            items: FocusAmbientTrack.values
+                .map(
+                  (track) => DropdownMenuItem(
+                    value: track,
+                    child: Text(track.label),
+                  ),
+                )
+                .toList(),
+            onChanged: (track) {
+              if (track != null) {
+                ref
+                    .read(settingsNotifierProvider.notifier)
+                    .setFocusAmbientTrack(track);
+              }
+            },
+          ),
+        ),
+        ListTile(
+          title: const Text('Long Break Track'),
+          trailing: DropdownButton<LongBreakTrack>(
+            value: settings.longBreakTrack,
+            items: LongBreakTrack.values
+                .map(
+                  (track) => DropdownMenuItem(
+                    value: track,
+                    child: Text(track.label),
+                  ),
+                )
+                .toList(),
+            onChanged: (track) {
+              if (track != null) {
+                ref
+                    .read(settingsNotifierProvider.notifier)
+                    .setLongBreakTrack(track);
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAppearanceSection(
     BuildContext context,
     WidgetRef ref,
@@ -277,7 +357,10 @@ class _DurationSlider extends StatelessWidget {
             style: TextStyle(
               color: enabled
                   ? Theme.of(context).colorScheme.onSurface
-                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                  : Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.38),
             ),
           ),
         ),

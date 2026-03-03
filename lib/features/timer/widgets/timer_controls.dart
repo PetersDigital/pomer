@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:pomer/core/utils/platform_utils.dart';
 import 'package:pomer/features/timer/models/timer_state.dart';
 import 'package:pomer/features/timer/providers/timer_provider.dart';
 
@@ -16,7 +18,12 @@ class TimerControls extends ConsumerWidget {
       children: [
         if (timerState.status == TimerStatus.idle) ...[
           FilledButton.icon(
-            onPressed: notifier.start,
+            onPressed: () async {
+              if (PlatformUtils.isMobile && await Permission.notification.isDenied) {
+                await Permission.notification.request();
+              }
+              notifier.start();
+            },
             icon: const Icon(Icons.play_arrow),
             label: const Text('Start'),
           ),
@@ -29,7 +36,12 @@ class TimerControls extends ConsumerWidget {
             )
           else
             IconButton.filled(
-              onPressed: notifier.start,
+              onPressed: () async {
+                if (PlatformUtils.isMobile && await Permission.notification.isDenied) {
+                  await Permission.notification.request();
+                }
+                notifier.start();
+              },
               icon: const Icon(Icons.play_arrow),
               tooltip: 'Resume',
             ),

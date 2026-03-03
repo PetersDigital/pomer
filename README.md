@@ -19,7 +19,7 @@ Pomer is a clean, Material 3 Pomodoro timer app designed to help you stay focuse
 | **v0.1.0** ✅ | Project foundation — Flutter setup, navigation shell, theming |
 | **v0.2.0** ✅ | Core Timer Engine — Timer countdown, phase transitions, play/pause/reset/skip, cycle tracking |
 | **v0.3.0** ✅ | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
-| v0.4.0 | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
+| **v0.4.0** ✅ | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
 | v0.5.0 | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
 | v0.6.0 | Task Tracking — Task binding, task list, tags, task-filtered statistics |
 | v0.7.0 | Gamification — Plant rewards, garden collection, streaks, unlock progression |
@@ -43,6 +43,15 @@ Pomer is a clean, Material 3 Pomodoro timer app designed to help you stay focuse
 | Notifications | [flutter_local_notifications](https://pub.dev/packages/flutter_local_notifications) (v0.4.0+) |
 | Charts | [fl_chart](https://pub.dev/packages/fl_chart) (v0.5.0+) |
 | Lint | [flutter_lints](https://pub.dev/packages/flutter_lints) + [riverpod_lint](https://pub.dev/packages/riverpod_lint) |
+
+## Audio Format Policy
+
+- Runtime audio is OGG-only for alarm and ambient tracks.
+- MP3 assets are deprecated and retained only as temporary legacy files.
+- New audio paths must use `.ogg` assets.
+- MP3 is deprecated because encoder padding and frame-boundary artifacts can break seamless loops.
+- OGG provides more reliable loop behavior in our runtime audio pipeline and reduces audible transition glitches.
+- Standardizing on one runtime format lowers maintenance complexity and avoids fallback-path regressions.
 
 ---
 
@@ -96,6 +105,31 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 ```
 
+If `flutter clean` fails on Windows with:
+
+```text
+Failed to remove build. A program may still be using a file in the directory...
+```
+
+Use this PowerShell 7 sequence from project root:
+
+```powershell
+.\android\gradlew --stop
+taskkill /F /IM java.exe /T
+taskkill /F /IM dart.exe /T
+
+flutter clean
+```
+
+If it still fails:
+
+```powershell
+# Delete only the build folder manually (do not delete the whole project)
+Remove-Item .\build -Recurse -Force
+
+flutter pub get
+```
+
 ### Running Tests
 
 ```bash
@@ -107,6 +141,38 @@ flutter test
 ```bash
 flutter analyze --fatal-infos
 ```
+
+### Android Log Capture (Windows + PowerShell 7)
+
+Use this when testing on a physical Android device over ADB wireless or on an Android Studio emulator.
+
+```powershell
+# Clear old logs
+adb logcat -c
+
+# App package
+$pkg = 'com.petersdigital.pomer'
+
+# Get app PID after launching the app
+$appPid = (adb shell pidof -s $pkg).Trim()
+
+# Full log stream for this app process
+adb logcat --pid=$appPid -v time
+```
+
+Filter by severity:
+
+```powershell
+# Warnings and Errors only
+adb logcat --pid=$appPid -v time '*:W'
+
+# Errors only
+adb logcat --pid=$appPid -v time '*:E'
+```
+
+Notes:
+- Works for both wireless ADB devices and Android Studio emulators on Windows.
+- In PowerShell, use `$appPid` (do not use `$PID`, which is a built-in read-only variable).
 
 ---
 

@@ -7,7 +7,6 @@ set(BINARY_NAME "pomer")
 
 cmake_policy(SET CMP0063 NEW)
 
-set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Prevent overriding the parent project's compiler/linker settings on Windows.

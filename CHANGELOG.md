@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - Audio & Notifications
+### Added
+- **Audio service architecture:** Added shared audio service abstractions with platform-specific implementations for mobile/desktop and web.
+- **Foreground/background runtime support:** Added foreground service integration for Android timer continuity and action callbacks.
+- **Notification service layer:** Added cross-platform notification service wiring with web and Windows-specific helper paths.
+- **Ambient track controls:** Added independent Focus, Break, and Alarm audio toggles and phase-based ambient track selection in settings.
+- **Audio asset set:** Added runtime alarm and ambient tracks in OGG format (with temporary MP3 legacy copies retained).
+- **Web looping backend:** Implemented Web Audio API path for seamless ambient looping in browsers.
+
+### Changed
+- **Timer behavior integration:** Connected timer phase transitions to alarm playback, ambient transitions, and notification preferences.
+- **Windows playback backend:** Switched Windows playback handling to media_kit-backed runtime path.
+- **UI controls placement:** Moved timer audio controls to sit below the phase chip for better cross-platform header consistency.
+
+### Fixed
+- **Web runtime fallbacks:** Hardened web asset manifest/path loading and browser notification fallbacks.
+- **Ambient stability:** Prevented unintended ambient restart on alarm mute and improved fade/transition reliability.
+- **Notification noise:** Suppressed rapid duplicate phase notifications.
+- **Android release playback:** Added media3/proguard keep fixes and corrected audio usage enums.
+- **Windows startup reliability:** Replaced problematic notification plugin path and fixed plugin DLL staging beside runner executable.
+- **Android back callback:** Enabled `OnBackInvokedCallback` support in manifest.
+
+### Performance
+- **Android service load:** Reduced background timer/service overhead during active sessions.
+
+### Docs & Tooling
+- Added local PowerShell troubleshooting guidance for Android workflows.
+- Refreshed generated provider/mocks and dependency lockfile during integration work.
+
 ## [0.3.0] - Settings & Customization
 ### Added
 - **Timer Presets:** Added the ability to choose between Classic (25/5/15), Extended (50/10/30), or Custom presets.

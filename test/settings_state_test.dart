@@ -14,8 +14,12 @@ void main() {
       expect(state.autoStartBreaks, isFalse);
       expect(state.autoStartPomodoros, isFalse);
       expect(state.keepScreenOn, isFalse);
+      expect(state.notificationsEnabled, isTrue);
+      expect(state.useSystemNotificationSound, isFalse);
       expect(state.themeMode, ThemeMode.system);
       expect(state.selectedPreset, TimerPreset.classic);
+      expect(state.focusAmbientTrack, FocusAmbientTrack.stream);
+      expect(state.longBreakTrack, LongBreakTrack.easyGoing);
     });
 
     test('copyWith overrides selected fields', () {
@@ -24,6 +28,9 @@ void main() {
         autoStartBreaks: true,
         themeMode: ThemeMode.dark,
         selectedPreset: TimerPreset.extended,
+        focusAmbientTrack: FocusAmbientTrack.wind,
+        longBreakTrack: LongBreakTrack.commercialA,
+        useSystemNotificationSound: true,
       );
 
       expect(state.focusDuration, 50);
@@ -32,8 +39,12 @@ void main() {
       expect(state.autoStartBreaks, isTrue);
       expect(state.autoStartPomodoros, isFalse);
       expect(state.keepScreenOn, isFalse);
+      expect(state.notificationsEnabled, isTrue);
+      expect(state.useSystemNotificationSound, isTrue);
       expect(state.themeMode, ThemeMode.dark);
       expect(state.selectedPreset, TimerPreset.extended);
+      expect(state.focusAmbientTrack, FocusAmbientTrack.wind);
+      expect(state.longBreakTrack, LongBreakTrack.commercialA);
     });
   });
 
@@ -42,6 +53,26 @@ void main() {
       expect(TimerPreset.classic.label, 'Classic (25/5/15)');
       expect(TimerPreset.extended.label, 'Extended (50/10/30)');
       expect(TimerPreset.custom.label, 'Custom');
+    });
+  });
+
+  group('FocusAmbientTrackDisplay', () {
+    test('label and assetPath return correct values', () {
+      expect(FocusAmbientTrack.stream.label, 'Stream');
+      expect(
+        FocusAmbientTrack.stream.assetPath,
+        'assets/audio/ambience_stream_loop.ogg',
+      );
+    });
+  });
+
+  group('LongBreakTrackDisplay', () {
+    test('label and assetPath return correct values', () {
+      expect(LongBreakTrack.easyGoing.label, 'Easy Going');
+      expect(
+        LongBreakTrack.easyGoing.assetPath,
+        'assets/audio/break_easy_going_loop.ogg',
+      );
     });
   });
 }
