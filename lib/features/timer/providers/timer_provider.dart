@@ -10,6 +10,8 @@ import 'package:pomer/core/services/notification_service.dart';
 import 'package:pomer/core/services/foreground_service.dart';
 import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
+import 'package:pomer/core/providers/database_provider.dart';
+import 'package:pomer/database/database.dart';
 
 part 'timer_provider.g.dart';
 
@@ -17,6 +19,7 @@ part 'timer_provider.g.dart';
 class TimerNotifier extends _$TimerNotifier {
   Timer? _timer;
   DateTime? _targetTime;
+  DateTime? _sessionStartTime;
 
   @override
   TimerState build() {
@@ -134,7 +137,13 @@ class TimerNotifier extends _$TimerNotifier {
     if (state.status == TimerStatus.running) return;
 
     // Calculate target time based on remaining seconds
-    _targetTime = DateTime.now().add(Duration(seconds: state.remainingSeconds));
+    final now = DateTime.now();
+    _targetTime = now.add(Duration(seconds: state.remainingSeconds));
+
+    // Set start time only if starting a fresh session
+    if (state.status == TimerStatus.idle) {
+      _sessionStartTime = now;
+    }
 
     state = state.copyWith(status: TimerStatus.running);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
@@ -188,9 +197,12 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void reset() {
+    _handleSessionLogging(isCompleted: false, status: 'interrupted');
+
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
+    _sessionStartTime = null;
 
     final settingsAsync = ref.read(settingsNotifierProvider);
     final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
@@ -211,6 +223,7 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void skip() {
+    _handleSessionLogging(isCompleted: false, status: 'skipped');
     _handlePhaseTransition();
   }
 
@@ -238,15 +251,45 @@ class TimerNotifier extends _$TimerNotifier {
     }
 
     // remaining <= 0 → transition to next phase.
-    _handlePhaseTransition();
+    _handlePhaseTransition(isNaturalCompletion: true);
   }
 
-  void _handlePhaseTransition() {
+  void _handleSessionLogging({
+    required bool isCompleted,
+    required String status,
+  }) {
+    if (_sessionStartTime == null) return;
+
+    final now = DateTime.now();
+    final totalPlannedSeconds = state.totalSeconds;
+    final remainingSeconds = state.remainingSeconds;
+    final actualDurationSeconds = totalPlannedSeconds - remainingSeconds;
+
+    if (actualDurationSeconds < 60) return; // Minimum threshold
+
+    final db = ref.read(appDatabaseProvider);
+    db.into(db.sessions).insert(
+          SessionsCompanion.insert(
+            startTime: _sessionStartTime!,
+            endTime: now,
+            durationSeconds: actualDurationSeconds,
+            phaseType: state.phase.name,
+            status: status,
+          ),
+        );
+  }
+
+  void _handlePhaseTransition({bool isNaturalCompletion = false}) {
+    if (isNaturalCompletion) {
+      _handleSessionLogging(isCompleted: true, status: 'completed');
+    }
+
     final previousPhase = state.phase;
 
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
+    _sessionStartTime = null;
 
     ref.read(audioServiceProvider).stopAmbient();
 
