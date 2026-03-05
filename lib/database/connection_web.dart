@@ -9,10 +9,12 @@ DatabaseConnection openConnection() {
     try {
       // In a production Web deployment with WASM, the base-href can shift the relative
       // paths, so we ensure the URI resolves against the current document base URL.
+      final sqlite3Uri = Uri.base.resolve('sqlite3.wasm');
+      final driftWorkerUri = Uri.base.resolve('drift_worker.js');
       final result = await WasmDatabase.open(
         databaseName: 'pomer_db',
-        sqlite3Uri: Uri.parse('sqlite3.wasm'),
-        driftWorkerUri: Uri.parse('drift_worker.js'),
+        sqlite3Uri: sqlite3Uri,
+        driftWorkerUri: driftWorkerUri,
       );
 
       if (result.missingFeatures.isNotEmpty) {
@@ -30,14 +32,8 @@ DatabaseConnection openConnection() {
         error: e,
         stackTrace: st,
       );
-      // Fallback to in-memory database if WASM/worker setup completely fails
-      // so the app does not blank-screen crash.
-      // If we can't get the WASM module loaded at all, we can fallback to the web local storage
-      // wrapper or a plain memory backend, but WasmDatabase.inMemory requires the sqlite3 wasm instance.
-      // If WasmDatabase.open threw, the web environment might not support the worker/wasm at all.
-      // In web without wasm, we use WebDatabase (from drift/web.dart)
-      developer.log('Falling back to WebDatabase (IndexedDB)');
-      return DatabaseConnection(WebDatabase('pomer_db_fallback'));
+      // Re-throwing the exception to allow the UI to handle the error state.
+      rethrow;
     }
   },),);
 }
