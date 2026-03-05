@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pomer/core/constants/app_constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -71,6 +72,18 @@ class SettingsNotifier extends _$SettingsNotifier {
         ? LongBreakTrack.values[longBreakTrackIndex]
         : LongBreakTrack.easyGoing;
 
+    final parsedPreset =
+        presetIndex >= 0 && presetIndex < TimerPreset.values.length
+            ? TimerPreset.values[presetIndex]
+            : TimerPreset.classic;
+    final selectedPreset = !kDebugMode && parsedPreset == TimerPreset.testing
+        ? TimerPreset.classic
+        : parsedPreset;
+
+    if (selectedPreset != parsedPreset) {
+      await _prefs.setInt(_keySelectedPreset, selectedPreset.index);
+    }
+
     return SettingsState(
       focusDuration: focus,
       shortBreakDuration: shortBreak,
@@ -81,7 +94,7 @@ class SettingsNotifier extends _$SettingsNotifier {
       notificationsEnabled: notificationsEnabled,
       useSystemNotificationSound: useSystemNotificationSound,
       themeMode: ThemeMode.values[themeIndex],
-      selectedPreset: TimerPreset.values[presetIndex],
+      selectedPreset: selectedPreset,
       focusAmbientTrack: focusAmbientTrack,
       longBreakTrack: longBreakTrack,
     );
@@ -129,6 +142,9 @@ class SettingsNotifier extends _$SettingsNotifier {
         );
         break;
       case TimerPreset.testing:
+        if (!kDebugMode) {
+          return;
+        }
         // Overrides the minute calculations in the TimerProvider by setting to 0.
         // It signals the timer to use exact testing seconds instead of minutes.
         await updateDurations(

@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pomer/core/constants/app_constants.dart';
+
+const bool _isDebugBuild = kDebugMode;
 
 enum TimerPreset {
   classic,
@@ -30,6 +33,12 @@ extension TimerPresetDisplay on TimerPreset {
         TimerPreset.testing => 'Testing (30s/15s/1m)',
       };
 }
+
+List<TimerPreset> get availableTimerPresets => _isDebugBuild
+    ? TimerPreset.values
+    : TimerPreset.values
+        .where((preset) => preset != TimerPreset.testing)
+        .toList(growable: false);
 
 extension FocusAmbientTrackDisplay on FocusAmbientTrack {
   String get label => switch (this) {
