@@ -2,13 +2,21 @@ import 'dart:js_interop';
 
 import 'package:web/web.dart' as web;
 
+bool _isNotificationSupported() {
+  try {
+    web.Notification.permission;
+    return true;
+  } on Object {
+    return false;
+  }
+}
+
 Future<void> requestWebNotificationPermissionImpl() async {
   if (!_isNotificationSupported()) {
     return;
   }
 
-  final permission = web.Notification.permission.toString();
-  if (permission != 'granted') {
+  if (web.Notification.permission != 'granted') {
     await web.Notification.requestPermission().toDart;
   }
 }
@@ -21,23 +29,12 @@ Future<void> showWebNotificationImpl({
     return;
   }
 
-  final permission = web.Notification.permission.toString();
-  if (permission != 'granted') {
-    final requestedPermission =
-        await web.Notification.requestPermission().toDart;
-    if (requestedPermission.toString() != 'granted') {
+  if (web.Notification.permission != 'granted') {
+    await web.Notification.requestPermission().toDart;
+    if (web.Notification.permission != 'granted') {
       return;
     }
   }
 
   web.Notification(title, web.NotificationOptions(body: body));
-}
-
-bool _isNotificationSupported() {
-  try {
-    web.Notification.permission;
-    return true;
-  } on Object {
-    return false;
-  }
 }
