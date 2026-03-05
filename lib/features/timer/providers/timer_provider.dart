@@ -140,6 +140,11 @@ class TimerNotifier extends _$TimerNotifier {
   void start({bool shouldPlayPhaseAudio = true}) {
     if (state.status == TimerStatus.running) return;
 
+    // Trigger permission requests right when user starts a session.
+    // This is especially crucial for Web where browsers require a
+    // direct user interaction (like a button click) to show the prompt.
+    ref.read(notificationServiceProvider).requestPermissions();
+
     // Calculate target time based on remaining seconds
     final now = DateTime.now();
     _targetTime = now.add(Duration(seconds: state.remainingSeconds));
