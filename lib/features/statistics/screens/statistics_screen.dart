@@ -4,6 +4,8 @@ import 'package:pomer/features/statistics/widgets/date_range_selector.dart';
 import 'package:pomer/features/statistics/widgets/focus_bar_chart.dart';
 import 'package:pomer/features/statistics/widgets/summary_stats_card.dart';
 import 'package:pomer/features/statistics/services/csv_export_service.dart';
+import 'package:pomer/features/statistics/providers/statistics_provider.dart';
+import 'package:pomer/core/providers/database_provider.dart';
 
 class StatisticsScreen extends ConsumerWidget {
   const StatisticsScreen({super.key});
@@ -14,6 +16,39 @@ class StatisticsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Statistics'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              ref.invalidate(sessionsByDateRangeProvider);
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Clear Statistics'),
+                  content: const Text('Are you sure you want to clear all session history? This cannot be undone.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true && context.mounted) {
+                await ref.read(appDatabaseProvider).clearAllSessions();
+                ref.invalidate(sessionsByDateRangeProvider);
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: () async {
