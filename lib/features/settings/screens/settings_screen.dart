@@ -341,7 +341,7 @@ class _DurationSlider extends StatelessWidget {
         ),
         Expanded(
           child: Slider(
-            value: value.toDouble(),
+            value: value.clamp(min, max).toDouble(),
             min: min.toDouble(),
             max: max.toDouble(),
             divisions: max - min,
