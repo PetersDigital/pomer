@@ -1,8 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:drift/drift.dart';
 import 'package:drift/wasm.dart';
-// ignore: deprecated_member_use
-import 'package:drift/web.dart';
 
 DatabaseConnection openConnection() {
   return DatabaseConnection.delayed(Future(() async {
