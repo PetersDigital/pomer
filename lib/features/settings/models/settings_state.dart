@@ -5,6 +5,7 @@ enum TimerPreset {
   classic,
   extended,
   custom,
+  testing,
 }
 
 enum FocusAmbientTrack {
@@ -26,6 +27,7 @@ extension TimerPresetDisplay on TimerPreset {
         TimerPreset.classic => 'Classic (25/5/15)',
         TimerPreset.extended => 'Extended (50/10/30)',
         TimerPreset.custom => 'Custom',
+        TimerPreset.testing => 'Testing (30s/15s/1m)',
       };
 }
 

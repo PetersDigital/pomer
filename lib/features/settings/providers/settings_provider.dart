@@ -128,6 +128,16 @@ class SettingsNotifier extends _$SettingsNotifier {
           preset: preset,
         );
         break;
+      case TimerPreset.testing:
+        // Overrides the minute calculations in the TimerProvider by setting to 0.
+        // It signals the timer to use exact testing seconds instead of minutes.
+        await updateDurations(
+          focus: 0,
+          shortBreak: 0,
+          longBreak: 1,
+          preset: preset,
+        );
+        break;
       case TimerPreset.custom:
         // Do nothing for durations, just update the preset
         await _prefs.setInt(_keySelectedPreset, preset.index);

@@ -50,7 +50,9 @@ class TimerNotifier extends _$TimerNotifier {
           state.status == TimerStatus.idle &&
           state.completedCycles == 0 &&
           state.phase == TimerPhase.focus) {
-        final focusDuration = next.value!.focusDuration * 60;
+        final isTesting = next.value!.selectedPreset == TimerPreset.testing;
+        final focusDuration = isTesting ? 30 : next.value!.focusDuration * 60;
+
         if (state.totalSeconds != focusDuration) {
           state = state.copyWith(
             totalSeconds: focusDuration,
@@ -205,12 +207,14 @@ class TimerNotifier extends _$TimerNotifier {
     _sessionStartTime = null;
 
     final settingsAsync = ref.read(settingsNotifierProvider);
-    final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
-        AppConstants.defaultFocusDuration;
+    final settings = settingsAsync.valueOrNull;
+    final isTesting = settings?.selectedPreset == TimerPreset.testing;
+
+    final focusDurationSeconds = isTesting ? 30 : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
 
     state = TimerState.initial().copyWith(
-      totalSeconds: focusDuration * 60,
-      remainingSeconds: focusDuration * 60,
+      totalSeconds: focusDurationSeconds,
+      remainingSeconds: focusDurationSeconds,
     );
 
     _stopAuxiliaryServices();
@@ -323,18 +327,17 @@ class TimerNotifier extends _$TimerNotifier {
       );
     }
 
-    final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
-        AppConstants.defaultFocusDuration;
-    final shortBreakDuration = settingsAsync.valueOrNull?.shortBreakDuration ??
-        AppConstants.defaultShortBreakDuration;
-    final longBreakDuration = settingsAsync.valueOrNull?.longBreakDuration ??
-        AppConstants.defaultLongBreakDuration;
+    final isTesting = settings?.selectedPreset == TimerPreset.testing;
+
+    final focusDurationSeconds = isTesting ? 30 : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
+    final shortBreakDurationSeconds = isTesting ? 15 : (settings?.shortBreakDuration ?? AppConstants.defaultShortBreakDuration) * 60;
+    final longBreakDurationSeconds = isTesting ? 60 : (settings?.longBreakDuration ?? AppConstants.defaultLongBreakDuration) * 60;
 
     state = _nextPhaseState(
       current: state,
-      focusDuration: focusDuration,
-      shortBreakDuration: shortBreakDuration,
-      longBreakDuration: longBreakDuration,
+      focusDurationSeconds: focusDurationSeconds,
+      shortBreakDurationSeconds: shortBreakDurationSeconds,
+      longBreakDurationSeconds: longBreakDurationSeconds,
     );
 
     // Auto-start next phase logic
@@ -371,9 +374,9 @@ class TimerNotifier extends _$TimerNotifier {
 
   TimerState _nextPhaseState({
     required TimerState current,
-    required int focusDuration,
-    required int shortBreakDuration,
-    required int longBreakDuration,
+    required int focusDurationSeconds,
+    required int shortBreakDurationSeconds,
+    required int longBreakDurationSeconds,
   }) {
     switch (current.phase) {
       case TimerPhase.focus:
@@ -383,8 +386,8 @@ class TimerNotifier extends _$TimerNotifier {
           return current.copyWith(
             phase: TimerPhase.longBreak,
             status: TimerStatus.idle,
-            totalSeconds: longBreakDuration * 60,
-            remainingSeconds: longBreakDuration * 60,
+            totalSeconds: longBreakDurationSeconds,
+            remainingSeconds: longBreakDurationSeconds,
             completedCycles: newCycles,
             totalSessionsCompleted: newTotal,
           );
@@ -392,8 +395,8 @@ class TimerNotifier extends _$TimerNotifier {
         return current.copyWith(
           phase: TimerPhase.shortBreak,
           status: TimerStatus.idle,
-          totalSeconds: shortBreakDuration * 60,
-          remainingSeconds: shortBreakDuration * 60,
+          totalSeconds: shortBreakDurationSeconds,
+          remainingSeconds: shortBreakDurationSeconds,
           completedCycles: newCycles,
           totalSessionsCompleted: newTotal,
         );
@@ -401,15 +404,15 @@ class TimerNotifier extends _$TimerNotifier {
         return current.copyWith(
           phase: TimerPhase.focus,
           status: TimerStatus.idle,
-          totalSeconds: focusDuration * 60,
-          remainingSeconds: focusDuration * 60,
+          totalSeconds: focusDurationSeconds,
+          remainingSeconds: focusDurationSeconds,
         );
       case TimerPhase.longBreak:
         return current.copyWith(
           phase: TimerPhase.focus,
           status: TimerStatus.idle,
-          totalSeconds: focusDuration * 60,
-          remainingSeconds: focusDuration * 60,
+          totalSeconds: focusDurationSeconds,
+          remainingSeconds: focusDurationSeconds,
           completedCycles: 0,
         );
     }
