@@ -9,7 +9,7 @@ part 'statistics_provider.g.dart';
 
 @riverpod
 Future<List<Session>> sessionsByDateRange(Ref ref) async {
-  final db = ref.watch(appDatabaseProvider);
+  final db = ref.read(appDatabaseProvider);
   final dateRange = ref.watch(dateRangeNotifierProvider);
 
   return (db.select(db.sessions)
