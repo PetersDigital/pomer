@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pomer/core/constants/app_constants.dart';
 import 'package:pomer/features/settings/providers/settings_provider.dart';
@@ -50,7 +51,8 @@ class TimerNotifier extends _$TimerNotifier {
           state.status == TimerStatus.idle &&
           state.completedCycles == 0 &&
           state.phase == TimerPhase.focus) {
-        final isTesting = next.value!.selectedPreset == TimerPreset.testing;
+        final isTesting =
+            kDebugMode && next.value!.selectedPreset == TimerPreset.testing;
         final focusDuration = isTesting ? 30 : next.value!.focusDuration * 60;
 
         if (state.totalSeconds != focusDuration) {
@@ -208,9 +210,12 @@ class TimerNotifier extends _$TimerNotifier {
 
     final settingsAsync = ref.read(settingsNotifierProvider);
     final settings = settingsAsync.valueOrNull;
-    final isTesting = settings?.selectedPreset == TimerPreset.testing;
+    final isTesting =
+        kDebugMode && settings?.selectedPreset == TimerPreset.testing;
 
-    final focusDurationSeconds = isTesting ? 30 : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
+    final focusDurationSeconds = isTesting
+        ? 30
+        : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
 
     state = TimerState.initial().copyWith(
       totalSeconds: focusDurationSeconds,
@@ -269,7 +274,10 @@ class TimerNotifier extends _$TimerNotifier {
     final remainingSeconds = state.remainingSeconds;
     final actualDurationSeconds = totalPlannedSeconds - remainingSeconds;
 
-    if (actualDurationSeconds < 1) return; // Minimum threshold
+    const minimumDurationSeconds = kDebugMode ? 1 : 60;
+    if (actualDurationSeconds < minimumDurationSeconds) {
+      return;
+    }
 
     final db = ref.read(appDatabaseProvider);
     db.into(db.sessions).insert(
@@ -327,11 +335,22 @@ class TimerNotifier extends _$TimerNotifier {
       );
     }
 
-    final isTesting = settings?.selectedPreset == TimerPreset.testing;
+    final isTesting =
+        kDebugMode && settings?.selectedPreset == TimerPreset.testing;
 
-    final focusDurationSeconds = isTesting ? 30 : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
-    final shortBreakDurationSeconds = isTesting ? 15 : (settings?.shortBreakDuration ?? AppConstants.defaultShortBreakDuration) * 60;
-    final longBreakDurationSeconds = isTesting ? 60 : (settings?.longBreakDuration ?? AppConstants.defaultLongBreakDuration) * 60;
+    final focusDurationSeconds = isTesting
+        ? 30
+        : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
+    final shortBreakDurationSeconds = isTesting
+        ? 15
+        : (settings?.shortBreakDuration ??
+                AppConstants.defaultShortBreakDuration) *
+            60;
+    final longBreakDurationSeconds = isTesting
+        ? 60
+        : (settings?.longBreakDuration ??
+                AppConstants.defaultLongBreakDuration) *
+            60;
 
     state = _nextPhaseState(
       current: state,
