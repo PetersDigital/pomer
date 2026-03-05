@@ -269,7 +269,7 @@ class TimerNotifier extends _$TimerNotifier {
     final remainingSeconds = state.remainingSeconds;
     final actualDurationSeconds = totalPlannedSeconds - remainingSeconds;
 
-    if (actualDurationSeconds < 60) return; // Minimum threshold
+    if (actualDurationSeconds < 1) return; // Minimum threshold
 
     final db = ref.read(appDatabaseProvider);
     db.into(db.sessions).insert(
