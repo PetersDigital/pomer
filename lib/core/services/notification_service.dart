@@ -24,7 +24,7 @@ class NotificationService {
   int? _lastNotificationId;
   String? _lastNotificationTitle;
   String? _lastNotificationBody;
-  int _windowsNotificationCounter = 1000;
+  int _notificationCounter = 1000;
 
   static const Duration _duplicateWindow = Duration(seconds: 3);
 
@@ -117,8 +117,8 @@ class NotificationService {
     }
 
     final normalizedBody = body.isEmpty ? 'Phase completed' : body;
-    final effectiveId =
-        PlatformUtils.isWindows ? _nextWindowsNotificationId() : id;
+    // Generate a unique ID to ensure consecutive push notifications actually appear on Android
+    final effectiveId = _nextNotificationId();
 
     final androidNotificationDetails = AndroidNotificationDetails(
       playSound ? _androidChannelIdSound : _androidChannelIdSilent,
@@ -194,11 +194,11 @@ class NotificationService {
     }
   }
 
-  int _nextWindowsNotificationId() {
-    _windowsNotificationCounter++;
-    if (_windowsNotificationCounter <= 0) {
-      _windowsNotificationCounter = 1000;
+  int _nextNotificationId() {
+    _notificationCounter++;
+    if (_notificationCounter >= 100000) {
+      _notificationCounter = 1000;
     }
-    return _windowsNotificationCounter;
+    return _notificationCounter;
   }
 }
