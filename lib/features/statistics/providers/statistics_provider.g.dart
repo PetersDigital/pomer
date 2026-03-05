@@ -7,7 +7,7 @@ part of 'statistics_provider.dart';
 // **************************************************************************
 
 String _$sessionsByDateRangeHash() =>
-    r'2932989c9c4222966d1007bd4d0f7688c33e9985';
+    r'463d473460486d425c4019ee95a657a189091fc8';
 
 /// See also [sessionsByDateRange].
 @ProviderFor(sessionsByDateRange)
