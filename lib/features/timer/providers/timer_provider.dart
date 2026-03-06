@@ -205,7 +205,7 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void reset() {
-    _handleSessionLogging(isCompleted: false, status: 'interrupted');
+    unawaited(_handleSessionLogging(isCompleted: false, status: 'interrupted'));
 
     _timer?.cancel();
     _timer = null;
@@ -235,7 +235,7 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void skip() {
-    _handleSessionLogging(isCompleted: false, status: 'skipped');
+    unawaited(_handleSessionLogging(isCompleted: false, status: 'skipped'));
     _handlePhaseTransition();
   }
 
@@ -268,10 +268,10 @@ class TimerNotifier extends _$TimerNotifier {
     _handlePhaseTransition(isNaturalCompletion: true);
   }
 
-  void _handleSessionLogging({
+  Future<void> _handleSessionLogging({
     required bool isCompleted,
     required String status,
-  }) {
+  }) async {
     if (_sessionStartTime == null) return;
 
     final now = DateTime.now();
@@ -289,20 +289,24 @@ class TimerNotifier extends _$TimerNotifier {
     }
 
     final db = ref.read(appDatabaseProvider);
-    db.into(db.sessions).insert(
-          SessionsCompanion.insert(
-            startTime: _sessionStartTime!,
-            endTime: now,
-            durationSeconds: actualDurationSeconds,
-            phaseType: state.phase.name,
-            status: status,
-          ),
-        );
+    try {
+      await db.into(db.sessions).insert(
+            SessionsCompanion.insert(
+              startTime: _sessionStartTime!,
+              endTime: now,
+              durationSeconds: actualDurationSeconds,
+              phaseType: state.phase.name,
+              status: status,
+            ),
+          );
+    } catch (e) {
+      debugPrint('Failed to log session: $e');
+    }
   }
 
   void _handlePhaseTransition({bool isNaturalCompletion = false}) {
     if (isNaturalCompletion) {
-      _handleSessionLogging(isCompleted: true, status: 'completed');
+      unawaited(_handleSessionLogging(isCompleted: true, status: 'completed'));
     }
 
     final previousPhase = state.phase;
@@ -321,7 +325,7 @@ class TimerNotifier extends _$TimerNotifier {
 
     final useSystemNotificationSound =
         settings?.useSystemNotificationSound ?? false;
-    final alarmAssetPath = state.phase == TimerPhase.shortBreak
+    final alarmAssetPath = previousPhase == TimerPhase.shortBreak
         ? 'assets/audio/alarm_x4.ogg'
         : 'assets/audio/alarm_x1.ogg';
 
