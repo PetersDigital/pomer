@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'date_range_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class DateRangeNotifier extends _$DateRangeNotifier {
   @override
   DateRange build() {
@@ -11,7 +11,9 @@ class DateRangeNotifier extends _$DateRangeNotifier {
   }
 
   void setPreset(DateRangePreset preset) {
-    if (preset == DateRangePreset.custom) return; // Must provide dates for custom
+    if (preset == DateRangePreset.custom) {
+      return; // Must provide dates for custom
+    }
     state = _getPresetRange(preset);
   }
 
@@ -31,7 +33,9 @@ class DateRangeNotifier extends _$DateRangeNotifier {
       case DateRangePreset.today:
         return DateRange(
           start: today,
-          end: today.add(const Duration(days: 1)).subtract(const Duration(microseconds: 1)),
+          end: today
+              .add(const Duration(days: 1))
+              .subtract(const Duration(microseconds: 1)),
           preset: preset,
         );
       case DateRangePreset.thisWeek:
@@ -40,7 +44,9 @@ class DateRangeNotifier extends _$DateRangeNotifier {
         final startOfWeek = today.subtract(Duration(days: daysSinceMonday));
         return DateRange(
           start: startOfWeek,
-          end: startOfWeek.add(const Duration(days: 7)).subtract(const Duration(microseconds: 1)),
+          end: startOfWeek
+              .add(const Duration(days: 7))
+              .subtract(const Duration(microseconds: 1)),
           preset: preset,
         );
       case DateRangePreset.thisMonth:

@@ -7,15 +7,17 @@ import 'package:drift/drift.dart';
 
 part 'statistics_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 Future<List<Session>> sessionsByDateRange(Ref ref) async {
   final db = ref.read(appDatabaseProvider);
   final dateRange = ref.watch(dateRangeNotifierProvider);
 
   return (db.select(db.sessions)
-        ..where((t) =>
-            t.startTime.isBiggerOrEqualValue(dateRange.start) &
-            t.startTime.isSmallerOrEqualValue(dateRange.end),))
+        ..where(
+          (t) =>
+              t.startTime.isBiggerOrEqualValue(dateRange.start) &
+              t.startTime.isSmallerOrEqualValue(dateRange.end),
+        ))
       .get();
 }
 
@@ -31,7 +33,7 @@ class SummaryStats {
   });
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 Future<SummaryStats> summaryStats(Ref ref) async {
   final sessions = await ref.watch(sessionsByDateRangeProvider.future);
 
@@ -46,7 +48,8 @@ Future<SummaryStats> summaryStats(Ref ref) async {
 
     if (session.phaseType == 'focus') {
       focus += session.durationSeconds;
-    } else if (session.phaseType == 'shortBreak' || session.phaseType == 'longBreak') {
+    } else if (session.phaseType == 'shortBreak' ||
+        session.phaseType == 'longBreak') {
       breakTime += session.durationSeconds;
     }
   }
