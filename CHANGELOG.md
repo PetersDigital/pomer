@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - Statistics & Database
+### Added
+- **Drift/SQLite database:** Integrated Drift ORM with platform-specific connections (native SQLite on Android/Windows, IndexedDB with WASM fallback on Web).
+- **Session logging:** Timer automatically records completed focus, short break, and long break sessions to the local database.
+- **Statistics dashboard:** Built an interactive statistics screen with summary cards (total sessions, total focus time, daily average, current streak).
+- **Focus bar chart:** Added daily focus-minutes bar chart powered by fl_chart with date-range-aware queries.
+- **Date range selector:** Added a date range picker (Today, 7 Days, 30 Days, All Time, Custom) that drives statistics filtering.
+- **CSV export:** Added one-tap CSV export of session data via the file_saver package, encoded as UTF-8.
+- **Clear stats & refresh buttons:** Added toolbar actions to clear all session data and manually refresh statistics.
+- **Web notification permissions:** Prompt for notification permissions on first user interaction in web builds.
+- **Testing preset:** Added a hidden custom testing preset in debug builds for rapid session-cycle QA.
+
+### Changed
+- **Timer cycle text logic:** Corrected the session/cycle display label to accurately reflect the current position in the Pomodoro cycle.
+- **Ambient track restart:** Prevented unnecessary ambient track restarts when the same track is already playing.
+
+### Fixed
+- **Timer infinite loop:** Resolved a 0-second remaining edge case that caused the timer to loop indefinitely.
+- **Phase alarm logic:** Corrected alarm trigger conditions during phase transitions and added error handling for session logging.
+- **Stats auto-dispose:** Prevented premature disposal of date range and statistics providers when navigating between tabs.
+- **Stats refresh blocking timer:** Fixed an issue where refreshing statistics could pause or stop the active timer.
+- **CSV encoding:** Switched CSV export encoding from UTF-16 to UTF-8 for broader compatibility.
+- **Web audio double prefix:** Resolved a bug causing doubled `assets/` path prefixes in web audio asset loading.
+- **Web WASM loading:** Fixed base href resolution and bootstrap entry for WASM builds; added IndexedDB fallback when WASM SQLite fails.
+- **Web WASM notifications:** Resolved missing notification support in WASM-compiled web builds.
+- **Web asset 404s:** Bypassed download manager interference by loading audio assets via rootBundle instead of HTTP URLs.
+- **Drift web import:** Removed unused drift web import that broke native database connections.
+- **Android notification flickering:** Resolved rapid notification re-posting and added push grouping.
+- **Android lockscreen visibility:** Ensured notification visibility on Samsung lockscreens.
+- **Notification deduplication:** Corrected the logic that suppressed rapid duplicate phase notifications; removed stale ID tracking in favor of normalised-body comparison.
+- **Foreground service importance:** Reduced notification channel importance to low and throttled update frequency.
+- **SystemChrome platform guard:** Added a platform check to prevent SystemChrome calls on unsupported platforms (web).
+- **Settings theme mode RangeError:** Added bounds check for theme mode index loaded from shared preferences.
+- **Testing preset visibility:** Ensured the testing preset is hidden in release builds.
+- **Unreachable web fallback:** Removed dead-code conditional import path for web notifications.
+- **Web notification JS interop:** Explicitly cast `web.Notification.permission` to a Dart string (`.toString()`) to fix unreliable permission checks under WASM.
+- **Custom date range end-date:** Normalised the custom Date Range picker end-date to encapsulate the full 23:59:59.999999 window so queries include the entire last day.
+- **Session label during break:** Corrected the session counter displayed during break phases to show the accurate completed-cycle count instead of a fallback expression.
+
+### Performance
+- **Timer rebuild reduction:** Added equality operator overrides to `TimerState` to prevent unnecessary widget rebuilds on identical state emissions.
+- **Foreground service overhead:** Throttled timer-to-foreground-service update calls and reduced notification channel importance.
+- **Focus bar chart All Time freeze:** Capped the `focusByDay` iteration to a maximum of 100 days to prevent UI freezing loops on the 'All Time' preset.
+
+### Docs & Tooling
+- Regenerated Riverpod provider outputs.
+- Added drift web worker build artifacts to `.gitignore`.
+
 ## [0.4.0] - Audio & Notifications
 ### Added
 - **Audio service architecture:** Added shared audio service abstractions with platform-specific implementations for mobile/desktop and web.
