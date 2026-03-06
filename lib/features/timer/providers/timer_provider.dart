@@ -251,13 +251,15 @@ class TimerNotifier extends _$TimerNotifier {
       if (remaining != state.remainingSeconds) {
         state = state.copyWith(remainingSeconds: remaining);
 
-        // Update foreground service
-        final String phaseText = state.phase.name.toUpperCase();
-        ref.read(foregroundServiceProvider).startService(
-              phaseText,
-              remaining.toMMSS(),
-              isPaused: state.status == TimerStatus.paused,
-            );
+        // Update foreground service every 5 seconds or when remaining is small
+        if (remaining % 5 == 0 || remaining <= 5) {
+          final String phaseText = state.phase.name.toUpperCase();
+          ref.read(foregroundServiceProvider).startService(
+                phaseText,
+                remaining.toMMSS(),
+                isPaused: state.status == TimerStatus.paused,
+              );
+        }
       }
       return;
     }
@@ -277,7 +279,9 @@ class TimerNotifier extends _$TimerNotifier {
     final remainingSeconds = state.remainingSeconds;
     final actualDurationSeconds = totalPlannedSeconds - remainingSeconds;
 
-    final isTesting = ref.read(settingsNotifierProvider).valueOrNull?.selectedPreset == TimerPreset.testing;
+    final isTesting =
+        ref.read(settingsNotifierProvider).valueOrNull?.selectedPreset ==
+            TimerPreset.testing;
     final minimumDurationSeconds = (isTesting || kDebugMode) ? 1 : 60;
 
     if (actualDurationSeconds < minimumDurationSeconds) {

@@ -53,8 +53,8 @@ class ForegroundService {
         channelId: 'pomer_foreground_service',
         channelName: 'Foreground Timer Service',
         channelDescription: 'Ongoing notification for Pomer timer',
-        channelImportance: NotificationChannelImportance.DEFAULT,
-        priority: NotificationPriority.DEFAULT,
+        channelImportance: NotificationChannelImportance.LOW,
+        priority: NotificationPriority.LOW,
         visibility: NotificationVisibility.VISIBILITY_PUBLIC,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
@@ -144,9 +144,7 @@ class ForegroundService {
       return;
     }
 
-    if (_lastTitle == title &&
-        _lastText == text &&
-        _lastIsPaused == isPaused) {
+    if (_lastTitle == title && _lastText == text && _lastIsPaused == isPaused) {
       return; // Skip identical updates to prevent flickering lock screens
     }
 
