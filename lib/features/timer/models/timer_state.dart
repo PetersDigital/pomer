@@ -57,4 +57,26 @@ class TimerState {
         totalSessionsCompleted:
             totalSessionsCompleted ?? this.totalSessionsCompleted,
       );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TimerState &&
+          runtimeType == other.runtimeType &&
+          phase == other.phase &&
+          status == other.status &&
+          totalSeconds == other.totalSeconds &&
+          remainingSeconds == other.remainingSeconds &&
+          completedCycles == other.completedCycles &&
+          totalSessionsCompleted == other.totalSessionsCompleted;
+
+  @override
+  int get hashCode => Object.hash(
+        phase,
+        status,
+        totalSeconds,
+        remainingSeconds,
+        completedCycles,
+        totalSessionsCompleted,
+      );
 }

@@ -25,6 +25,22 @@ class AudioPreferences {
       alarmAudioEnabled: alarmAudioEnabled ?? this.alarmAudioEnabled,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AudioPreferences &&
+          runtimeType == other.runtimeType &&
+          focusAudioEnabled == other.focusAudioEnabled &&
+          breakAudioEnabled == other.breakAudioEnabled &&
+          alarmAudioEnabled == other.alarmAudioEnabled;
+
+  @override
+  int get hashCode => Object.hash(
+        focusAudioEnabled,
+        breakAudioEnabled,
+        alarmAudioEnabled,
+      );
 }
 
 @Riverpod(keepAlive: true)
