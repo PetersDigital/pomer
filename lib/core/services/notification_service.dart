@@ -153,7 +153,7 @@ class NotificationService {
         notificationDetails: notificationDetails,
       );
       _lastNotificationTimestamp = now;
-      _lastNotificationId = effectiveId;
+      _lastNotificationId = id;
       _lastNotificationTitle = title;
       _lastNotificationBody = normalizedBody;
     } catch (_) {
