@@ -264,7 +264,7 @@ class TimerNotifier extends _$TimerNotifier {
       return;
     }
 
-    // remaining <= 0 → transition to next phase.
+    // remaining < 0 → transition to next phase.
     _handlePhaseTransition(isNaturalCompletion: true);
   }
 
