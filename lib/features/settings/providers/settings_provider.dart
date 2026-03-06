@@ -49,8 +49,7 @@ class SettingsNotifier extends _$SettingsNotifier {
     var focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
     var shortBreak =
         results[1] as int? ?? AppConstants.defaultShortBreakDuration;
-    var longBreak =
-        results[2] as int? ?? AppConstants.defaultLongBreakDuration;
+    var longBreak = results[2] as int? ?? AppConstants.defaultLongBreakDuration;
 
     // Safety net: if previous bugs corrupted the DB with zeros, heal them here
     if (focus <= 0) focus = AppConstants.defaultFocusDuration;
@@ -90,7 +89,9 @@ class SettingsNotifier extends _$SettingsNotifier {
       keepScreenOn: keepScreenOn,
       notificationsEnabled: notificationsEnabled,
       useSystemNotificationSound: useSystemNotificationSound,
-      themeMode: ThemeMode.values[themeIndex],
+      themeMode: themeIndex >= 0 && themeIndex < ThemeMode.values.length
+          ? ThemeMode.values[themeIndex]
+          : ThemeMode.system,
       selectedPreset: selectedPreset,
       focusAmbientTrack: focusAmbientTrack,
       longBreakTrack: longBreakTrack,
