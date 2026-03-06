@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:file_saver/file_saver.dart';
@@ -44,10 +45,12 @@ class CsvExportService {
     }
 
     final String csv = const CsvEncoder().convert(rows);
-    final Uint8List bytes = Uint8List.fromList(csv.codeUnits);
+    final Uint8List bytes = Uint8List.fromList(utf8.encode(csv));
 
-    final startStr = '${dateRange.start.year}-${dateRange.start.month.toString().padLeft(2, '0')}-${dateRange.start.day.toString().padLeft(2, '0')}';
-    final endStr = '${dateRange.end.year}-${dateRange.end.month.toString().padLeft(2, '0')}-${dateRange.end.day.toString().padLeft(2, '0')}';
+    final startStr =
+        '${dateRange.start.year}-${dateRange.start.month.toString().padLeft(2, '0')}-${dateRange.start.day.toString().padLeft(2, '0')}';
+    final endStr =
+        '${dateRange.end.year}-${dateRange.end.month.toString().padLeft(2, '0')}-${dateRange.end.day.toString().padLeft(2, '0')}';
 
     await FileSaver.instance.saveFile(
       name: 'pomer_sessions_${startStr}_to_$endStr.csv',
