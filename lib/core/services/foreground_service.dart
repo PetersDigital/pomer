@@ -53,8 +53,9 @@ class ForegroundService {
         channelId: 'pomer_foreground_service',
         channelName: 'Foreground Timer Service',
         channelDescription: 'Ongoing notification for Pomer timer',
-        channelImportance: NotificationChannelImportance.LOW,
-        priority: NotificationPriority.LOW,
+        channelImportance: NotificationChannelImportance.DEFAULT,
+        priority: NotificationPriority.DEFAULT,
+        visibility: NotificationVisibility.VISIBILITY_PUBLIC,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: true,

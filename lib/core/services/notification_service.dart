@@ -129,6 +129,7 @@ class NotificationService {
       ticker: 'ticker',
       playSound: playSound,
       onlyAlertOnce: true,
+      visibility: NotificationVisibility.public,
     );
 
     final darwinNotificationDetails = DarwinNotificationDetails(
