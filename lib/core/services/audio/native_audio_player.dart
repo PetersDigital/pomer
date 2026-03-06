@@ -267,8 +267,7 @@ class NativeAudioPlayer implements AudioPlayerPlatform {
   }) async {
     await _ensureAudioSessionConfigured();
 
-    if (_currentAmbientAssetPath == ambientAssetPath) {
-      await playAmbient(ambientAssetPath: ambientAssetPath);
+    if (_currentAmbientAssetPath == ambientAssetPath && _ambientReady) {
       return;
     }
 
