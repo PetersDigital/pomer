@@ -51,8 +51,7 @@ class TimerNotifier extends _$TimerNotifier {
           state.status == TimerStatus.idle &&
           state.completedCycles == 0 &&
           state.phase == TimerPhase.focus) {
-        final isTesting =
-            kDebugMode && next.value!.selectedPreset == TimerPreset.testing;
+        final isTesting = next.value!.selectedPreset == TimerPreset.testing;
         final focusDuration = isTesting ? 30 : next.value!.focusDuration * 60;
 
         if (state.totalSeconds != focusDuration) {
@@ -215,8 +214,7 @@ class TimerNotifier extends _$TimerNotifier {
 
     final settingsAsync = ref.read(settingsNotifierProvider);
     final settings = settingsAsync.valueOrNull;
-    final isTesting =
-        kDebugMode && settings?.selectedPreset == TimerPreset.testing;
+    final isTesting = settings?.selectedPreset == TimerPreset.testing;
 
     final focusDurationSeconds = isTesting
         ? 30
@@ -279,7 +277,9 @@ class TimerNotifier extends _$TimerNotifier {
     final remainingSeconds = state.remainingSeconds;
     final actualDurationSeconds = totalPlannedSeconds - remainingSeconds;
 
-    const minimumDurationSeconds = kDebugMode ? 1 : 60;
+    final isTesting = ref.read(settingsNotifierProvider).valueOrNull?.selectedPreset == TimerPreset.testing;
+    final minimumDurationSeconds = (isTesting || kDebugMode) ? 1 : 60;
+
     if (actualDurationSeconds < minimumDurationSeconds) {
       return;
     }
@@ -340,8 +340,7 @@ class TimerNotifier extends _$TimerNotifier {
       );
     }
 
-    final isTesting =
-        kDebugMode && settings?.selectedPreset == TimerPreset.testing;
+    final isTesting = settings?.selectedPreset == TimerPreset.testing;
 
     final focusDurationSeconds = isTesting
         ? 30

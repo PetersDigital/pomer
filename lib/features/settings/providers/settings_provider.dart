@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pomer/core/constants/app_constants.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -47,11 +46,16 @@ class SettingsNotifier extends _$SettingsNotifier {
       _prefs.getInt(_keyLongBreakTrack),
     ]);
 
-    final focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
-    final shortBreak =
+    var focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
+    var shortBreak =
         results[1] as int? ?? AppConstants.defaultShortBreakDuration;
-    final longBreak =
+    var longBreak =
         results[2] as int? ?? AppConstants.defaultLongBreakDuration;
+
+    // Safety net: if previous bugs corrupted the DB with zeros, heal them here
+    if (focus <= 0) focus = AppConstants.defaultFocusDuration;
+    if (shortBreak <= 0) shortBreak = AppConstants.defaultShortBreakDuration;
+    if (longBreak <= 0) longBreak = AppConstants.defaultLongBreakDuration;
     final autoStartBreaks = results[3] as bool? ?? false;
     final autoStartPomodoros = results[4] as bool? ?? false;
     final keepScreenOn = results[5] as bool? ?? false;
@@ -72,17 +76,10 @@ class SettingsNotifier extends _$SettingsNotifier {
         ? LongBreakTrack.values[longBreakTrackIndex]
         : LongBreakTrack.easyGoing;
 
-    final parsedPreset =
+    final selectedPreset =
         presetIndex >= 0 && presetIndex < TimerPreset.values.length
             ? TimerPreset.values[presetIndex]
             : TimerPreset.classic;
-    final selectedPreset = !kDebugMode && parsedPreset == TimerPreset.testing
-        ? TimerPreset.classic
-        : parsedPreset;
-
-    if (selectedPreset != parsedPreset) {
-      await _prefs.setInt(_keySelectedPreset, selectedPreset.index);
-    }
 
     return SettingsState(
       focusDuration: focus,
@@ -142,17 +139,11 @@ class SettingsNotifier extends _$SettingsNotifier {
         );
         break;
       case TimerPreset.testing:
-        if (!kDebugMode) {
-          return;
-        }
-        // Overrides the minute calculations in the TimerProvider by setting to 0.
-        // It signals the timer to use exact testing seconds instead of minutes.
-        await updateDurations(
-          focus: 0,
-          shortBreak: 0,
-          longBreak: 1,
-          preset: preset,
-        );
+        // Do NOT overwrite user's actual saved durations with zeros.
+        // TimerProvider natively respects the `testing` preset dynamically.
+        // We only change the selected preset.
+        await _prefs.setInt(_keySelectedPreset, preset.index);
+        state = AsyncData(state.value!.copyWith(selectedPreset: preset));
         break;
       case TimerPreset.custom:
         // Do nothing for durations, just update the preset
