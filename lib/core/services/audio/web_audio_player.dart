@@ -97,7 +97,7 @@ class WebAudioPlayer implements AudioPlayerPlatform {
 
     try {
       final resolvedPath =
-          assetPath.startsWith('assets/') ? 'assets/$assetPath' : assetPath;
+          assetPath.startsWith('assets/') ? assetPath : 'assets/$assetPath';
       final response = await web.window.fetch(resolvedPath.toJS).toDart;
       if (!response.ok) {
         throw Exception('Failed to load $resolvedPath: ${response.statusText}');
