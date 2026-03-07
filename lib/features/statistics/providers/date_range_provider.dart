@@ -18,9 +18,25 @@ class DateRangeNotifier extends _$DateRangeNotifier {
   }
 
   void setCustomRange(DateTime start, DateTime end) {
+    var finalStart = start;
+    var finalEnd = end;
+
+    // Ensure start is not after end
+    if (finalEnd.isBefore(finalStart)) {
+      final tmp = finalStart;
+      finalStart = finalEnd;
+      finalEnd = tmp;
+    }
+
+    // Normalize to full-day range, matching preset behavior
+    final normalizedStart = DateTime(finalStart.year, finalStart.month, finalStart.day);
+    final normalizedEnd = DateTime(finalEnd.year, finalEnd.month, finalEnd.day)
+        .add(const Duration(days: 1))
+        .subtract(const Duration(microseconds: 1));
+
     state = DateRange(
-      start: start,
-      end: end,
+      start: normalizedStart,
+      end: normalizedEnd,
       preset: DateRangePreset.custom,
     );
   }

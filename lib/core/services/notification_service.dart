@@ -21,7 +21,6 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   late final Future<void> _initFuture;
   DateTime? _lastNotificationTimestamp;
-  int? _lastNotificationId;
   String? _lastNotificationTitle;
   String? _lastNotificationBody;
   int _notificationCounter = 1000;
@@ -106,17 +105,17 @@ class NotificationService {
     await _initFuture;
 
     final now = DateTime.now();
+    final normalizedBody = body.isEmpty ? 'Phase completed' : body;
+
     final isDuplicateNotification = _lastNotificationTimestamp != null &&
-        _lastNotificationId == id &&
         _lastNotificationTitle == title &&
-        _lastNotificationBody == body &&
+        _lastNotificationBody == normalizedBody &&
         now.difference(_lastNotificationTimestamp!) < _duplicateWindow;
 
     if (isDuplicateNotification) {
       return;
     }
 
-    final normalizedBody = body.isEmpty ? 'Phase completed' : body;
     // Generate a unique ID to ensure consecutive push notifications actually appear on Android
     final effectiveId = _nextNotificationId();
 
@@ -153,7 +152,6 @@ class NotificationService {
         notificationDetails: notificationDetails,
       );
       _lastNotificationTimestamp = now;
-      _lastNotificationId = id;
       _lastNotificationTitle = title;
       _lastNotificationBody = normalizedBody;
     } catch (_) {
@@ -172,6 +170,9 @@ class NotificationService {
 
     await _initFuture;
     try {
+      // Note: Because we generate unique effective IDs for consecutive grouping on Android,
+      // targeted ID cancellation is best-effort unless mapped. For our timer use case,
+      // cancelAllNotifications() is exclusively used, making this safe.
       await _flutterLocalNotificationsPlugin.cancel(id: id);
     } catch (_) {
       // Ignore unsupported platform plugin calls.

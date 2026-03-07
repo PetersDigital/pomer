@@ -7,12 +7,11 @@ part of 'statistics_provider.dart';
 // **************************************************************************
 
 String _$sessionsByDateRangeHash() =>
-    r'463d473460486d425c4019ee95a657a189091fc8';
+    r'e310b0dad7941f7098ed3ae1c5e292a16799ecbf';
 
 /// See also [sessionsByDateRange].
 @ProviderFor(sessionsByDateRange)
-final sessionsByDateRangeProvider =
-    AutoDisposeFutureProvider<List<Session>>.internal(
+final sessionsByDateRangeProvider = FutureProvider<List<Session>>.internal(
   sessionsByDateRange,
   name: r'sessionsByDateRangeProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -24,12 +23,12 @@ final sessionsByDateRangeProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef SessionsByDateRangeRef = AutoDisposeFutureProviderRef<List<Session>>;
-String _$summaryStatsHash() => r'11857db8e45051a0d6b139a95357f49c8160179b';
+typedef SessionsByDateRangeRef = FutureProviderRef<List<Session>>;
+String _$summaryStatsHash() => r'bef3242d1f0400cd3f076937b40695c1fa43bcb5';
 
 /// See also [summaryStats].
 @ProviderFor(summaryStats)
-final summaryStatsProvider = AutoDisposeFutureProvider<SummaryStats>.internal(
+final summaryStatsProvider = FutureProvider<SummaryStats>.internal(
   summaryStats,
   name: r'summaryStatsProvider',
   debugGetCreateSourceHash:
@@ -40,6 +39,6 @@ final summaryStatsProvider = AutoDisposeFutureProvider<SummaryStats>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef SummaryStatsRef = AutoDisposeFutureProviderRef<SummaryStats>;
+typedef SummaryStatsRef = FutureProviderRef<SummaryStats>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

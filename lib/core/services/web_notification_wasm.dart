@@ -16,7 +16,7 @@ Future<void> requestWebNotificationPermissionImpl() async {
     return;
   }
 
-  if (web.Notification.permission != 'granted') {
+  if (web.Notification.permission.toString() != 'granted') {
     await web.Notification.requestPermission().toDart;
   }
 }
@@ -29,9 +29,9 @@ Future<void> showWebNotificationImpl({
     return;
   }
 
-  if (web.Notification.permission != 'granted') {
-    await web.Notification.requestPermission().toDart;
-    if (web.Notification.permission != 'granted') {
+  if (web.Notification.permission.toString() != 'granted') {
+    final result = await web.Notification.requestPermission().toDart;
+    if (result.toString() != 'granted') {
       return;
     }
   }

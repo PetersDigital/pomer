@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pomer/features/statistics/providers/statistics_provider.dart';
 import 'package:pomer/features/statistics/providers/date_range_provider.dart';
+import 'package:pomer/features/statistics/models/date_range.dart';
 
 class FocusBarChart extends ConsumerWidget {
   const FocusBarChart({super.key});
@@ -16,8 +17,29 @@ class FocusBarChart extends ConsumerWidget {
       data: (sessions) {
         final Map<DateTime, int> focusByDay = {};
 
-        // Populate days in range
-        for (var d = dateRange.start; !d.isAfter(dateRange.end); d = d.add(const Duration(days: 1))) {
+        // If the range is massive (e.g. All Time), capping the UI days makes it performant.
+        // We will collect the actual days that have sessions first, and then build a bounded range.
+        final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        DateTime minDate = today;
+        DateTime maxDate = today;
+
+        if (dateRange.preset == DateRangePreset.allTime) {
+          if (sessions.isNotEmpty) {
+            final firstSessionDate = sessions.first.startTime;
+            minDate = DateTime(firstSessionDate.year, firstSessionDate.month, firstSessionDate.day);
+          }
+        } else {
+           minDate = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
+           maxDate = DateTime(dateRange.end.year, dateRange.end.month, dateRange.end.day);
+        }
+
+        // Ensure we don't render more than ~100 bars to prevent UI freezing
+        if (maxDate.difference(minDate).inDays > 100) {
+           minDate = maxDate.subtract(const Duration(days: 100));
+        }
+
+        // Populate days in bounds
+        for (var d = minDate; !d.isAfter(maxDate); d = d.add(const Duration(days: 1))) {
            focusByDay[DateTime(d.year, d.month, d.day)] = 0;
         }
 
