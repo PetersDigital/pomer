@@ -46,11 +46,15 @@ class SettingsNotifier extends _$SettingsNotifier {
       _prefs.getInt(_keyLongBreakTrack),
     ]);
 
-    final focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
-    final shortBreak =
+    var focus = results[0] as int? ?? AppConstants.defaultFocusDuration;
+    var shortBreak =
         results[1] as int? ?? AppConstants.defaultShortBreakDuration;
-    final longBreak =
-        results[2] as int? ?? AppConstants.defaultLongBreakDuration;
+    var longBreak = results[2] as int? ?? AppConstants.defaultLongBreakDuration;
+
+    // Safety net: if previous bugs corrupted the DB with zeros, heal them here
+    if (focus <= 0) focus = AppConstants.defaultFocusDuration;
+    if (shortBreak <= 0) shortBreak = AppConstants.defaultShortBreakDuration;
+    if (longBreak <= 0) longBreak = AppConstants.defaultLongBreakDuration;
     final autoStartBreaks = results[3] as bool? ?? false;
     final autoStartPomodoros = results[4] as bool? ?? false;
     final keepScreenOn = results[5] as bool? ?? false;
@@ -71,6 +75,11 @@ class SettingsNotifier extends _$SettingsNotifier {
         ? LongBreakTrack.values[longBreakTrackIndex]
         : LongBreakTrack.easyGoing;
 
+    final selectedPreset =
+        presetIndex >= 0 && presetIndex < TimerPreset.values.length
+            ? TimerPreset.values[presetIndex]
+            : TimerPreset.classic;
+
     return SettingsState(
       focusDuration: focus,
       shortBreakDuration: shortBreak,
@@ -80,8 +89,10 @@ class SettingsNotifier extends _$SettingsNotifier {
       keepScreenOn: keepScreenOn,
       notificationsEnabled: notificationsEnabled,
       useSystemNotificationSound: useSystemNotificationSound,
-      themeMode: ThemeMode.values[themeIndex],
-      selectedPreset: TimerPreset.values[presetIndex],
+      themeMode: themeIndex >= 0 && themeIndex < ThemeMode.values.length
+          ? ThemeMode.values[themeIndex]
+          : ThemeMode.system,
+      selectedPreset: selectedPreset,
       focusAmbientTrack: focusAmbientTrack,
       longBreakTrack: longBreakTrack,
     );
@@ -127,6 +138,13 @@ class SettingsNotifier extends _$SettingsNotifier {
           longBreak: 30,
           preset: preset,
         );
+        break;
+      case TimerPreset.testing:
+        // Do NOT overwrite user's actual saved durations with zeros.
+        // TimerProvider natively respects the `testing` preset dynamically.
+        // We only change the selected preset.
+        await _prefs.setInt(_keySelectedPreset, preset.index);
+        state = AsyncData(state.value!.copyWith(selectedPreset: preset));
         break;
       case TimerPreset.custom:
         // Do nothing for durations, just update the preset

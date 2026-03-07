@@ -96,14 +96,13 @@ class WebAudioPlayer implements AudioPlayerPlatform {
     if (_audioContext == null) return;
 
     try {
-      final resolvedPath =
-          assetPath.startsWith('assets/') ? 'assets/$assetPath' : assetPath;
-      final response = await web.window.fetch(resolvedPath.toJS).toDart;
-      if (!response.ok) {
-        throw Exception('Failed to load $resolvedPath: ${response.statusText}');
-      }
+      final ByteData byteData = await rootBundle.load(assetPath);
+      final Uint8List bytes = byteData.buffer.asUint8List(
+        byteData.offsetInBytes,
+        byteData.lengthInBytes,
+      );
 
-      final arrayBuffer = await response.arrayBuffer().toDart;
+      final JSArrayBuffer arrayBuffer = Uint8List.fromList(bytes).buffer.toJS;
       final audioBuffer =
           await _audioContext!.decodeAudioData(arrayBuffer).toDart;
 

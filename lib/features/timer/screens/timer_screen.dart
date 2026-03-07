@@ -62,8 +62,8 @@ class TimerScreen extends ConsumerWidget {
                         ),
                         IconButton(
                           tooltip: prefs.breakAudioEnabled
-                              ? 'Mute Break Music'
-                              : 'Unmute Break Music',
+                              ? 'Mute Long Break Music'
+                              : 'Unmute Long Break Music',
                           icon: Icon(
                             prefs.breakAudioEnabled
                                 ? Icons.coffee

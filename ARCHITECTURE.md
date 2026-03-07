@@ -117,18 +117,19 @@ GoRouter enables declarative deep linking on all platforms. Future features shou
 
 ## Data Layer
 
-### v0.1.0–v0.2.0 (current)
+### v0.1.0–v0.2.0
 No persistent data. Timer state is in-memory only. Theme mode defaults to system.
 
-### v0.3.0 (planned)
+### v0.3.0
 - **SharedPreferences** for simple key-value settings (durations, theme preference, auto-start toggle).
 - Package: `shared_preferences: ^2.x`
 
-### v0.5.0 (planned)
+### v0.5.0 (current)
 - **Drift** (SQLite) for structured local data (session history, tasks, achievements).
 - Database definitions in `lib/database/`.
+- Platform-specific connections: native SQLite on Android/Windows, IndexedDB with WASM fallback on Web.
 - Each feature accesses the database through its own Drift DAO.
-- CSV export support for session data.
+- CSV export support for session data (UTF-8 encoded).
 
 ---
 
@@ -202,7 +203,7 @@ Release notes are generated from the matching section in `CHANGELOG.md` for the 
 | v0.2.0 ✅ | Core Timer Engine — Timer countdown, phase transitions, play/pause/reset/skip, cycle tracking |
 | v0.3.0 ✅ | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
 | v0.4.0 ✅ | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
-| v0.5.0 | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
+| v0.5.0 ✅ | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
 | v0.6.0 | Task Tracking — Task binding, task list, tags, task-filtered statistics |
 | v0.7.0 | Gamification — Plant rewards, garden collection, streaks, unlock progression |
 | v0.8.0 | Platform Hardening — App icons, splash screen, PWA, responsive layout, accessibility |

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pomer/core/constants/app_constants.dart';
 import 'package:pomer/features/settings/providers/settings_provider.dart';
@@ -10,6 +11,8 @@ import 'package:pomer/core/services/notification_service.dart';
 import 'package:pomer/core/services/foreground_service.dart';
 import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
+import 'package:pomer/core/providers/database_provider.dart';
+import 'package:pomer/database/database.dart';
 
 part 'timer_provider.g.dart';
 
@@ -17,6 +20,7 @@ part 'timer_provider.g.dart';
 class TimerNotifier extends _$TimerNotifier {
   Timer? _timer;
   DateTime? _targetTime;
+  DateTime? _sessionStartTime;
 
   @override
   TimerState build() {
@@ -47,7 +51,9 @@ class TimerNotifier extends _$TimerNotifier {
           state.status == TimerStatus.idle &&
           state.completedCycles == 0 &&
           state.phase == TimerPhase.focus) {
-        final focusDuration = next.value!.focusDuration * 60;
+        final isTesting = next.value!.selectedPreset == TimerPreset.testing;
+        final focusDuration = isTesting ? 30 : next.value!.focusDuration * 60;
+
         if (state.totalSeconds != focusDuration) {
           state = state.copyWith(
             totalSeconds: focusDuration,
@@ -133,8 +139,19 @@ class TimerNotifier extends _$TimerNotifier {
   void start({bool shouldPlayPhaseAudio = true}) {
     if (state.status == TimerStatus.running) return;
 
+    // Trigger permission requests right when user starts a session.
+    // This is especially crucial for Web where browsers require a
+    // direct user interaction (like a button click) to show the prompt.
+    ref.read(notificationServiceProvider).requestPermissions();
+
     // Calculate target time based on remaining seconds
-    _targetTime = DateTime.now().add(Duration(seconds: state.remainingSeconds));
+    final now = DateTime.now();
+    _targetTime = now.add(Duration(seconds: state.remainingSeconds));
+
+    // Set start time only if starting a fresh session
+    if (state.status == TimerStatus.idle) {
+      _sessionStartTime = now;
+    }
 
     state = state.copyWith(status: TimerStatus.running);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
@@ -188,17 +205,24 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void reset() {
+    unawaited(_handleSessionLogging(isCompleted: false, status: 'interrupted'));
+
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
+    _sessionStartTime = null;
 
     final settingsAsync = ref.read(settingsNotifierProvider);
-    final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
-        AppConstants.defaultFocusDuration;
+    final settings = settingsAsync.valueOrNull;
+    final isTesting = settings?.selectedPreset == TimerPreset.testing;
+
+    final focusDurationSeconds = isTesting
+        ? 30
+        : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
 
     state = TimerState.initial().copyWith(
-      totalSeconds: focusDuration * 60,
-      remainingSeconds: focusDuration * 60,
+      totalSeconds: focusDurationSeconds,
+      remainingSeconds: focusDurationSeconds,
     );
 
     _stopAuxiliaryServices();
@@ -211,6 +235,7 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void skip() {
+    unawaited(_handleSessionLogging(isCompleted: false, status: 'skipped'));
     _handlePhaseTransition();
   }
 
@@ -226,27 +251,70 @@ class TimerNotifier extends _$TimerNotifier {
       if (remaining != state.remainingSeconds) {
         state = state.copyWith(remainingSeconds: remaining);
 
-        // Update foreground service
-        final String phaseText = state.phase.name.toUpperCase();
-        ref.read(foregroundServiceProvider).startService(
-              phaseText,
-              remaining.toMMSS(),
-              isPaused: state.status == TimerStatus.paused,
-            );
+        // Update foreground service every 5 seconds or when remaining is small
+        if (remaining % 5 == 0 || remaining <= 5) {
+          final String phaseText = state.phase.name.toUpperCase();
+          ref.read(foregroundServiceProvider).startService(
+                phaseText,
+                remaining.toMMSS(),
+                isPaused: state.status == TimerStatus.paused,
+              );
+        }
       }
       return;
     }
 
-    // remaining <= 0 → transition to next phase.
-    _handlePhaseTransition();
+    // remaining < 0 → transition to next phase.
+    _handlePhaseTransition(isNaturalCompletion: true);
   }
 
-  void _handlePhaseTransition() {
+  Future<void> _handleSessionLogging({
+    required bool isCompleted,
+    required String status,
+  }) async {
+    if (_sessionStartTime == null) return;
+
+    final now = DateTime.now();
+    final totalPlannedSeconds = state.totalSeconds;
+    final remainingSeconds = state.remainingSeconds;
+    final actualDurationSeconds = totalPlannedSeconds - remainingSeconds;
+
+    final isTesting =
+        ref.read(settingsNotifierProvider).valueOrNull?.selectedPreset ==
+            TimerPreset.testing;
+    final minimumDurationSeconds = (isTesting || kDebugMode) ? 1 : 60;
+
+    if (actualDurationSeconds < minimumDurationSeconds) {
+      return;
+    }
+
+    final db = ref.read(appDatabaseProvider);
+    try {
+      await db.into(db.sessions).insert(
+            SessionsCompanion.insert(
+              startTime: _sessionStartTime!,
+              endTime: now,
+              durationSeconds: actualDurationSeconds,
+              phaseType: state.phase.name,
+              status: status,
+            ),
+          );
+    } catch (e) {
+      debugPrint('Failed to log session: $e');
+    }
+  }
+
+  void _handlePhaseTransition({bool isNaturalCompletion = false}) {
+    if (isNaturalCompletion) {
+      unawaited(_handleSessionLogging(isCompleted: true, status: 'completed'));
+    }
+
     final previousPhase = state.phase;
 
     _timer?.cancel();
     _timer = null;
     _targetTime = null;
+    _sessionStartTime = null;
 
     ref.read(audioServiceProvider).stopAmbient();
 
@@ -257,7 +325,7 @@ class TimerNotifier extends _$TimerNotifier {
 
     final useSystemNotificationSound =
         settings?.useSystemNotificationSound ?? false;
-    final alarmAssetPath = state.phase == TimerPhase.shortBreak
+    final alarmAssetPath = previousPhase == TimerPhase.shortBreak
         ? 'assets/audio/alarm_x4.ogg'
         : 'assets/audio/alarm_x1.ogg';
 
@@ -280,18 +348,27 @@ class TimerNotifier extends _$TimerNotifier {
       );
     }
 
-    final focusDuration = settingsAsync.valueOrNull?.focusDuration ??
-        AppConstants.defaultFocusDuration;
-    final shortBreakDuration = settingsAsync.valueOrNull?.shortBreakDuration ??
-        AppConstants.defaultShortBreakDuration;
-    final longBreakDuration = settingsAsync.valueOrNull?.longBreakDuration ??
-        AppConstants.defaultLongBreakDuration;
+    final isTesting = settings?.selectedPreset == TimerPreset.testing;
+
+    final focusDurationSeconds = isTesting
+        ? 30
+        : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
+    final shortBreakDurationSeconds = isTesting
+        ? 15
+        : (settings?.shortBreakDuration ??
+                AppConstants.defaultShortBreakDuration) *
+            60;
+    final longBreakDurationSeconds = isTesting
+        ? 60
+        : (settings?.longBreakDuration ??
+                AppConstants.defaultLongBreakDuration) *
+            60;
 
     state = _nextPhaseState(
       current: state,
-      focusDuration: focusDuration,
-      shortBreakDuration: shortBreakDuration,
-      longBreakDuration: longBreakDuration,
+      focusDurationSeconds: focusDurationSeconds,
+      shortBreakDurationSeconds: shortBreakDurationSeconds,
+      longBreakDurationSeconds: longBreakDurationSeconds,
     );
 
     // Auto-start next phase logic
@@ -328,9 +405,9 @@ class TimerNotifier extends _$TimerNotifier {
 
   TimerState _nextPhaseState({
     required TimerState current,
-    required int focusDuration,
-    required int shortBreakDuration,
-    required int longBreakDuration,
+    required int focusDurationSeconds,
+    required int shortBreakDurationSeconds,
+    required int longBreakDurationSeconds,
   }) {
     switch (current.phase) {
       case TimerPhase.focus:
@@ -340,8 +417,8 @@ class TimerNotifier extends _$TimerNotifier {
           return current.copyWith(
             phase: TimerPhase.longBreak,
             status: TimerStatus.idle,
-            totalSeconds: longBreakDuration * 60,
-            remainingSeconds: longBreakDuration * 60,
+            totalSeconds: longBreakDurationSeconds,
+            remainingSeconds: longBreakDurationSeconds,
             completedCycles: newCycles,
             totalSessionsCompleted: newTotal,
           );
@@ -349,8 +426,8 @@ class TimerNotifier extends _$TimerNotifier {
         return current.copyWith(
           phase: TimerPhase.shortBreak,
           status: TimerStatus.idle,
-          totalSeconds: shortBreakDuration * 60,
-          remainingSeconds: shortBreakDuration * 60,
+          totalSeconds: shortBreakDurationSeconds,
+          remainingSeconds: shortBreakDurationSeconds,
           completedCycles: newCycles,
           totalSessionsCompleted: newTotal,
         );
@@ -358,15 +435,15 @@ class TimerNotifier extends _$TimerNotifier {
         return current.copyWith(
           phase: TimerPhase.focus,
           status: TimerStatus.idle,
-          totalSeconds: focusDuration * 60,
-          remainingSeconds: focusDuration * 60,
+          totalSeconds: focusDurationSeconds,
+          remainingSeconds: focusDurationSeconds,
         );
       case TimerPhase.longBreak:
         return current.copyWith(
           phase: TimerPhase.focus,
           status: TimerStatus.idle,
-          totalSeconds: focusDuration * 60,
-          remainingSeconds: focusDuration * 60,
+          totalSeconds: focusDurationSeconds,
+          remainingSeconds: focusDurationSeconds,
           completedCycles: 0,
         );
     }

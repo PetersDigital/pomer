@@ -1,5 +1,5 @@
 import 'package:pomer/core/services/web_notification_stub.dart'
-    if (dart.library.html) 'package:pomer/core/services/web_notification_web.dart';
+    if (dart.library.js_interop) 'package:pomer/core/services/web_notification_wasm.dart';
 
 Future<void> requestWebNotificationPermission() {
   return requestWebNotificationPermissionImpl();

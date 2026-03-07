@@ -55,6 +55,7 @@ class ForegroundService {
         channelDescription: 'Ongoing notification for Pomer timer',
         channelImportance: NotificationChannelImportance.LOW,
         priority: NotificationPriority.LOW,
+        visibility: NotificationVisibility.VISIBILITY_PUBLIC,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
         showNotification: true,
@@ -117,6 +118,10 @@ class ForegroundService {
     if (await FlutterForegroundTask.isRunningService) {
       await updateService(title, text, isPaused: isPaused);
     } else {
+      _lastTitle = title;
+      _lastText = text;
+      _lastIsPaused = isPaused;
+
       await FlutterForegroundTask.startService(
         notificationTitle: title,
         notificationText: text,
@@ -126,6 +131,10 @@ class ForegroundService {
     }
   }
 
+  String? _lastTitle;
+  String? _lastText;
+  bool? _lastIsPaused;
+
   Future<void> updateService(
     String title,
     String text, {
@@ -134,6 +143,14 @@ class ForegroundService {
     if (!PlatformUtils.isAndroid) {
       return;
     }
+
+    if (_lastTitle == title && _lastText == text && _lastIsPaused == isPaused) {
+      return; // Skip identical updates to prevent flickering lock screens
+    }
+
+    _lastTitle = title;
+    _lastText = text;
+    _lastIsPaused = isPaused;
 
     final buttons = [
       if (isPaused)

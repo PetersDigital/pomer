@@ -51,6 +51,11 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     SettingsState settings,
   ) {
+    final presets = availableTimerPresets;
+    final selectedPreset = presets.contains(settings.selectedPreset)
+        ? settings.selectedPreset
+        : TimerPreset.classic;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -62,12 +67,12 @@ class SettingsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<TimerPreset>(
-          initialValue: settings.selectedPreset,
+          initialValue: selectedPreset,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           ),
-          items: TimerPreset.values.map((preset) {
+          items: presets.map((preset) {
             return DropdownMenuItem(
               value: preset,
               child: Text(preset.label),
@@ -341,7 +346,7 @@ class _DurationSlider extends StatelessWidget {
         ),
         Expanded(
           child: Slider(
-            value: value.toDouble(),
+            value: value.clamp(min, max).toDouble(),
             min: min.toDouble(),
             max: max.toDouble(),
             divisions: max - min,
