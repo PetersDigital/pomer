@@ -9,7 +9,7 @@ import 'package:drift/drift.dart';
 part 'statistics_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-Future<List<Session>> sessionsByDateRange(Ref ref) async {
+Future<List<TypedResult>> rawSessionsQuery(Ref ref) async {
   final db = ref.read(appDatabaseProvider);
   final dateRange = ref.watch(dateRangeNotifierProvider);
   final filter = ref.watch(statisticsFilterNotifierProvider);
@@ -28,7 +28,14 @@ Future<List<Session>> sessionsByDateRange(Ref ref) async {
     query.where(db.tasks.tag.equals(filter.tag!));
   }
 
-  final rows = await query.get();
+  return query.get();
+}
+
+@Riverpod(keepAlive: true)
+Future<List<Session>> sessionsByDateRange(Ref ref) async {
+  final db = ref.read(appDatabaseProvider);
+  final rows = await ref.watch(rawSessionsQueryProvider.future);
+
   return rows.map((row) => row.readTable(db.sessions)).toList();
 }
 

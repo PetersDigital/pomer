@@ -6,8 +6,25 @@ part of 'statistics_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$rawSessionsQueryHash() => r'6074d93b3cd811c98a70dcecc0a84e8e5a0504f7';
+
+/// See also [rawSessionsQuery].
+@ProviderFor(rawSessionsQuery)
+final rawSessionsQueryProvider = FutureProvider<List<TypedResult>>.internal(
+  rawSessionsQuery,
+  name: r'rawSessionsQueryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$rawSessionsQueryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef RawSessionsQueryRef = FutureProviderRef<List<TypedResult>>;
 String _$sessionsByDateRangeHash() =>
-    r'3e21639c479eb7628b6e4cb6fc544390778d4522';
+    r'5bc28103be04770b72fb4fa7e46fdeee821a4dd9';
 
 /// See also [sessionsByDateRange].
 @ProviderFor(sessionsByDateRange)
