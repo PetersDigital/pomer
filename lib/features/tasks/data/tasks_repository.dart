@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../core/providers/database_provider.dart';
-import '../../../database/database.dart';
+import 'package:pomer/core/providers/database_provider.dart';
+import 'package:pomer/database/database.dart';
 
 part 'tasks_repository.g.dart';
 

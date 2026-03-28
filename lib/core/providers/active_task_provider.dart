@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../database/database.dart';
+import 'package:pomer/database/database.dart';
 
 part 'active_task_provider.g.dart';
 

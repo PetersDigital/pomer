@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../database/database.dart';
-import '../data/tasks_repository.dart';
+import 'package:pomer/database/database.dart';
+import 'package:pomer/features/tasks/data/tasks_repository.dart';
 
 part 'task_list_provider.g.dart';
 

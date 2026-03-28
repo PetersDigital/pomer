@@ -6,8 +6,8 @@ import 'package:pomer/features/timer/widgets/phase_utils.dart';
 import 'package:pomer/features/timer/widgets/timer_controls.dart';
 import 'package:pomer/features/timer/widgets/timer_display.dart';
 import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
-import '../../../core/providers/active_task_provider.dart';
-import '../../tasks/providers/task_list_provider.dart';
+import 'package:pomer/core/providers/active_task_provider.dart';
+import 'package:pomer/core/providers/task_list_provider.dart';
 
 /// Full Pomodoro timer screen.
 class TimerScreen extends ConsumerWidget {
