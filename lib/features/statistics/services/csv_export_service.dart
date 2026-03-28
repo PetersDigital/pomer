@@ -1,12 +1,12 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:csv/csv.dart';
-import 'package:drift/drift.dart';
 import 'package:pomer/core/providers/database_provider.dart';
 import 'package:pomer/features/statistics/providers/date_range_provider.dart';
-import 'package:pomer/features/statistics/providers/statistics_filter_provider.dart';
+import 'package:pomer/features/statistics/providers/statistics_provider.dart';
 
 final csvExportServiceProvider = Provider<CsvExportService>((ref) {
   return CsvExportService(ref);
@@ -19,24 +19,8 @@ class CsvExportService {
 
   Future<void> exportSessions() async {
     final db = _ref.read(appDatabaseProvider);
+    final queryRows = await _ref.read(rawSessionsQueryProvider.future);
     final dateRange = _ref.read(dateRangeNotifierProvider);
-    final filter = _ref.read(statisticsFilterNotifierProvider);
-
-    final query = db.select(db.sessions).join([
-      leftOuterJoin(db.tasks, db.tasks.id.equalsExp(db.sessions.taskId)),
-    ])
-      ..where(
-        db.sessions.startTime.isBiggerOrEqualValue(dateRange.start) &
-            db.sessions.startTime.isSmallerOrEqualValue(dateRange.end),
-      );
-
-    if (filter.taskId != null) {
-      query.where(db.sessions.taskId.equals(filter.taskId!));
-    } else if (filter.tag != null) {
-      query.where(db.tasks.tag.equals(filter.tag!));
-    }
-
-    final queryRows = await query.get();
 
     final List<List<dynamic>> rows = [];
     // Header
