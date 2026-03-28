@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'features/settings/providers/settings_provider.dart';
 import 'features/settings/screens/settings_screen.dart';
 import 'features/statistics/screens/statistics_screen.dart';
+import 'features/tasks/screens/tasks_screen.dart';
 import 'features/timer/screens/timer_screen.dart';
 
 final _router = GoRouter(
@@ -18,6 +19,10 @@ final _router = GoRouter(
         GoRoute(
           path: '/',
           builder: (context, state) => const TimerScreen(),
+        ),
+        GoRoute(
+          path: '/tasks',
+          builder: (context, state) => const TasksScreen(),
         ),
         GoRoute(
           path: '/stats',
@@ -66,17 +71,21 @@ class AppShell extends StatelessWidget {
 
   int _selectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/stats')) return 1;
-    if (location.startsWith('/settings')) return 2;
+    if (location.startsWith('/tasks')) return 1;
+    if (location.startsWith('/stats')) return 2;
+    if (location.startsWith('/settings')) return 3;
     return 0;
   }
 
   void _onDestinationSelected(int index, BuildContext context) {
     switch (index) {
       case 1:
-        context.go('/stats');
+        context.go('/tasks');
         return;
       case 2:
+        context.go('/stats');
+        return;
+      case 3:
         context.go('/settings');
         return;
       default:
@@ -97,6 +106,10 @@ class AppShell extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.timer_outlined),
             label: 'Timer',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.check_circle_outline),
+            label: 'Tasks',
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),

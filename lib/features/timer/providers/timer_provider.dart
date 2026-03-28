@@ -13,6 +13,8 @@ import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
 import 'package:pomer/core/providers/database_provider.dart';
 import 'package:pomer/database/database.dart';
+import 'package:pomer/core/providers/active_task_provider.dart';
+import 'package:drift/drift.dart' show Value;
 
 part 'timer_provider.g.dart';
 
@@ -290,6 +292,7 @@ class TimerNotifier extends _$TimerNotifier {
 
     final db = ref.read(appDatabaseProvider);
     try {
+      final activeTask = ref.read(activeTaskProvider);
       await db.into(db.sessions).insert(
             SessionsCompanion.insert(
               startTime: _sessionStartTime!,
@@ -297,6 +300,7 @@ class TimerNotifier extends _$TimerNotifier {
               durationSeconds: actualDurationSeconds,
               phaseType: state.phase.name,
               status: status,
+              taskId: Value(activeTask?.id),
             ),
           );
     } catch (e) {
