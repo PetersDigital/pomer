@@ -12,18 +12,10 @@ class StatisticsFilterNotifier extends _$StatisticsFilterNotifier {
   }
 
   void setTaskFilter(String? taskId) {
-    if (taskId == null) {
-      state = (taskId: null, tag: state.tag);
-    } else {
-      state = (taskId: taskId, tag: null);
-    }
+    state = (taskId: taskId, tag: null);
   }
 
   void setTagFilter(String? tag) {
-    if (tag == null) {
-      state = (taskId: state.taskId, tag: null);
-    } else {
-      state = (taskId: null, tag: tag);
-    }
+    state = (taskId: null, tag: tag);
   }
 }
