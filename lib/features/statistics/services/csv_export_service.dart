@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:csv/csv.dart';
+import 'package:drift/drift.dart';
+import 'package:pomer/core/providers/database_provider.dart';
 import 'package:pomer/features/statistics/providers/date_range_provider.dart';
-import 'package:pomer/features/statistics/providers/statistics_provider.dart';
+import 'package:pomer/features/statistics/providers/statistics_filter_provider.dart';
 
 final csvExportServiceProvider = Provider<CsvExportService>((ref) {
   return CsvExportService(ref);
@@ -17,8 +18,25 @@ class CsvExportService {
   CsvExportService(this._ref);
 
   Future<void> exportSessions() async {
-    final sessions = await _ref.read(sessionsByDateRangeProvider.future);
+    final db = _ref.read(appDatabaseProvider);
     final dateRange = _ref.read(dateRangeNotifierProvider);
+    final filter = _ref.read(statisticsFilterNotifierProvider);
+
+    final query = db.select(db.sessions).join([
+      leftOuterJoin(db.tasks, db.tasks.id.equalsExp(db.sessions.taskId)),
+    ])
+      ..where(
+        db.sessions.startTime.isBiggerOrEqualValue(dateRange.start) &
+            db.sessions.startTime.isSmallerOrEqualValue(dateRange.end),
+      );
+
+    if (filter.taskId != null) {
+      query.where(db.sessions.taskId.equals(filter.taskId!));
+    } else if (filter.tag != null) {
+      query.where(db.tasks.tag.equals(filter.tag!));
+    }
+
+    final queryRows = await query.get();
 
     final List<List<dynamic>> rows = [];
     // Header
@@ -30,9 +48,14 @@ class CsvExportService {
       'Phase Type',
       'Status',
       'Task ID',
+      'Task Title',
+      'Task Tag',
     ]);
 
-    for (final session in sessions) {
+    for (final row in queryRows) {
+      final session = row.readTable(db.sessions);
+      final task = row.readTableOrNull(db.tasks);
+
       rows.add([
         session.id,
         session.startTime.toIso8601String(),
@@ -41,6 +64,8 @@ class CsvExportService {
         session.phaseType,
         session.status,
         session.taskId ?? '',
+        task?.title ?? '',
+        task?.tag ?? '',
       ]);
     }
 

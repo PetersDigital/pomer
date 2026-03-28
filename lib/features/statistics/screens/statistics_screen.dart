@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pomer/features/statistics/widgets/date_range_selector.dart';
+import 'package:pomer/features/statistics/widgets/statistics_filter_selector.dart';
 import 'package:pomer/features/statistics/widgets/focus_bar_chart.dart';
 import 'package:pomer/features/statistics/widgets/summary_stats_card.dart';
 import 'package:pomer/features/statistics/services/csv_export_service.dart';
@@ -76,6 +77,10 @@ class StatisticsScreen extends ConsumerWidget {
             Padding(
               padding: EdgeInsets.all(16.0),
               child: DateRangeSelector(),
+            ),
+            Padding(
+              padding: EdgeInsets.only(bottom: 16.0),
+              child: StatisticsFilterSelector(),
             ),
             SummaryStatsCard(),
             FocusBarChart(),

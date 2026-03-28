@@ -1,6 +1,7 @@
 import 'package:pomer/core/providers/database_provider.dart';
 import 'package:pomer/database/database.dart';
 import 'package:pomer/features/statistics/providers/date_range_provider.dart';
+import 'package:pomer/features/statistics/providers/statistics_filter_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart';
@@ -11,14 +12,24 @@ part 'statistics_provider.g.dart';
 Future<List<Session>> sessionsByDateRange(Ref ref) async {
   final db = ref.read(appDatabaseProvider);
   final dateRange = ref.watch(dateRangeNotifierProvider);
+  final filter = ref.watch(statisticsFilterNotifierProvider);
 
-  return (db.select(db.sessions)
-        ..where(
-          (t) =>
-              t.startTime.isBiggerOrEqualValue(dateRange.start) &
-              t.startTime.isSmallerOrEqualValue(dateRange.end),
-        ))
-      .get();
+  final query = db.select(db.sessions).join([
+    leftOuterJoin(db.tasks, db.tasks.id.equalsExp(db.sessions.taskId)),
+  ])
+    ..where(
+      db.sessions.startTime.isBiggerOrEqualValue(dateRange.start) &
+          db.sessions.startTime.isSmallerOrEqualValue(dateRange.end),
+    );
+
+  if (filter.taskId != null) {
+    query.where(db.sessions.taskId.equals(filter.taskId!));
+  } else if (filter.tag != null) {
+    query.where(db.tasks.tag.equals(filter.tag!));
+  }
+
+  final rows = await query.get();
+  return rows.map((row) => row.readTable(db.sessions)).toList();
 }
 
 class SummaryStats {
