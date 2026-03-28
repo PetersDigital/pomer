@@ -7,7 +7,7 @@ part of 'statistics_filter_provider.dart';
 // **************************************************************************
 
 String _$statisticsFilterNotifierHash() =>
-    r'c7ed04eebc5f33ec508c6b642dda0cde5f123b9f';
+    r'8cbbb6fb15adca09ef3618989b4e32fb0ac93faa';
 
 /// See also [StatisticsFilterNotifier].
 @ProviderFor(StatisticsFilterNotifier)

@@ -18,4 +18,8 @@ class StatisticsFilterNotifier extends _$StatisticsFilterNotifier {
   void setTagFilter(String? tag) {
     state = (taskId: null, tag: tag);
   }
+
+  void clearFilters() {
+    state = (taskId: null, tag: null);
+  }
 }
