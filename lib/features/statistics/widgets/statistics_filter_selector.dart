@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pomer/core/providers/database_provider.dart';
+import 'package:pomer/database/database.dart';
 import 'package:pomer/features/statistics/providers/statistics_filter_provider.dart';
 
 class StatisticsFilterSelector extends ConsumerStatefulWidget {
@@ -12,7 +13,7 @@ class StatisticsFilterSelector extends ConsumerStatefulWidget {
 }
 
 class _StatisticsFilterSelectorState extends ConsumerState<StatisticsFilterSelector> {
-  List<Map<String, dynamic>> _tasks = [];
+  List<Task> _tasks = [];
   List<String> _tags = [];
   bool _isLoading = true;
 
@@ -36,7 +37,7 @@ class _StatisticsFilterSelectorState extends ConsumerState<StatisticsFilterSelec
 
       if (mounted) {
         setState(() {
-          _tasks = tasks.map((t) => {'id': t.id, 'title': t.title}).toList();
+          _tasks = tasks;
           _tags = uniqueTags.toList()..sort();
           _isLoading = false;
         });
@@ -102,14 +103,12 @@ class _StatisticsFilterSelectorState extends ConsumerState<StatisticsFilterSelec
               (task) => Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: FilterChip(
-                  label: Text(task['title'] as String),
-                  selected: currentFilter.taskId == task['id'],
+                  label: Text(task.title),
+                  selected: currentFilter.taskId == task.id,
                   onSelected: (selected) {
                     ref
                         .read(statisticsFilterNotifierProvider.notifier)
-                        .setTaskFilter(
-                          selected ? task['id'] as String : null,
-                        );
+                        .setTaskFilter(selected ? task.id : null);
                   },
                 ),
               ),
