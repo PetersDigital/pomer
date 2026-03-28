@@ -9,14 +9,27 @@ import 'package:drift/drift.dart';
 part 'statistics_provider.g.dart';
 
 @Riverpod(keepAlive: true)
-Future<List<TypedResult>> rawSessionsQuery(Ref ref) async {
+Stream<List<Task>> statisticsTasksStream(Ref ref) {
+  final db = ref.read(appDatabaseProvider);
+  return db.select(db.tasks).watch();
+}
+
+@Riverpod(keepAlive: true)
+Future<List<TypedResult>> rawSessionsQuery(
+  Ref ref, {
+  bool requireTaskJoin = false,
+}) async {
   final db = ref.read(appDatabaseProvider);
   final dateRange = ref.watch(dateRangeNotifierProvider);
   final filter = ref.watch(statisticsFilterNotifierProvider);
 
-  final query = db.select(db.sessions).join([
-    leftOuterJoin(db.tasks, db.tasks.id.equalsExp(db.sessions.taskId)),
-  ])
+  final shouldJoinTasks = requireTaskJoin || filter.tag != null;
+
+  final joins = shouldJoinTasks
+      ? [leftOuterJoin(db.tasks, db.tasks.id.equalsExp(db.sessions.taskId))]
+      : <Join<HasResultSet, dynamic>>[];
+
+  final query = db.select(db.sessions).join(joins)
     ..where(
       db.sessions.startTime.isBiggerOrEqualValue(dateRange.start) &
           db.sessions.startTime.isSmallerOrEqualValue(dateRange.end),
@@ -34,7 +47,9 @@ Future<List<TypedResult>> rawSessionsQuery(Ref ref) async {
 @Riverpod(keepAlive: true)
 Future<List<Session>> sessionsByDateRange(Ref ref) async {
   final db = ref.read(appDatabaseProvider);
-  final rows = await ref.watch(rawSessionsQueryProvider.future);
+  final rows = await ref.watch(
+    rawSessionsQueryProvider(requireTaskJoin: false).future,
+  );
 
   return rows.map((row) => row.readTable(db.sessions)).toList();
 }

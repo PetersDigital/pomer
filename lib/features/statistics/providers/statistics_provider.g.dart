@@ -6,25 +6,179 @@ part of 'statistics_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$rawSessionsQueryHash() => r'6074d93b3cd811c98a70dcecc0a84e8e5a0504f7';
+String _$statisticsTasksStreamHash() =>
+    r'2a71eb5a1361fa125d585d38910246174cab7e3c';
 
-/// See also [rawSessionsQuery].
-@ProviderFor(rawSessionsQuery)
-final rawSessionsQueryProvider = FutureProvider<List<TypedResult>>.internal(
-  rawSessionsQuery,
-  name: r'rawSessionsQueryProvider',
+/// See also [statisticsTasksStream].
+@ProviderFor(statisticsTasksStream)
+final statisticsTasksStreamProvider = StreamProvider<List<Task>>.internal(
+  statisticsTasksStream,
+  name: r'statisticsTasksStreamProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$rawSessionsQueryHash,
+      : _$statisticsTasksStreamHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef RawSessionsQueryRef = FutureProviderRef<List<TypedResult>>;
+typedef StatisticsTasksStreamRef = StreamProviderRef<List<Task>>;
+String _$rawSessionsQueryHash() => r'b90559828958be9ce1b54dc76be6600c4ff7180f';
+
+/// Copied from Dart SDK
+class _SystemHash {
+  _SystemHash._();
+
+  static int combine(int hash, int value) {
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + value);
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+    return hash ^ (hash >> 6);
+  }
+
+  static int finish(int hash) {
+    // ignore: parameter_assignments
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+    // ignore: parameter_assignments
+    hash = hash ^ (hash >> 11);
+    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  }
+}
+
+/// See also [rawSessionsQuery].
+@ProviderFor(rawSessionsQuery)
+const rawSessionsQueryProvider = RawSessionsQueryFamily();
+
+/// See also [rawSessionsQuery].
+class RawSessionsQueryFamily extends Family<AsyncValue<List<TypedResult>>> {
+  /// See also [rawSessionsQuery].
+  const RawSessionsQueryFamily();
+
+  /// See also [rawSessionsQuery].
+  RawSessionsQueryProvider call({
+    bool requireTaskJoin = false,
+  }) {
+    return RawSessionsQueryProvider(
+      requireTaskJoin: requireTaskJoin,
+    );
+  }
+
+  @override
+  RawSessionsQueryProvider getProviderOverride(
+    covariant RawSessionsQueryProvider provider,
+  ) {
+    return call(
+      requireTaskJoin: provider.requireTaskJoin,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'rawSessionsQueryProvider';
+}
+
+/// See also [rawSessionsQuery].
+class RawSessionsQueryProvider extends FutureProvider<List<TypedResult>> {
+  /// See also [rawSessionsQuery].
+  RawSessionsQueryProvider({
+    bool requireTaskJoin = false,
+  }) : this._internal(
+          (ref) => rawSessionsQuery(
+            ref as RawSessionsQueryRef,
+            requireTaskJoin: requireTaskJoin,
+          ),
+          from: rawSessionsQueryProvider,
+          name: r'rawSessionsQueryProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$rawSessionsQueryHash,
+          dependencies: RawSessionsQueryFamily._dependencies,
+          allTransitiveDependencies:
+              RawSessionsQueryFamily._allTransitiveDependencies,
+          requireTaskJoin: requireTaskJoin,
+        );
+
+  RawSessionsQueryProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.requireTaskJoin,
+  }) : super.internal();
+
+  final bool requireTaskJoin;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<TypedResult>> Function(RawSessionsQueryRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: RawSessionsQueryProvider._internal(
+        (ref) => create(ref as RawSessionsQueryRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        requireTaskJoin: requireTaskJoin,
+      ),
+    );
+  }
+
+  @override
+  FutureProviderElement<List<TypedResult>> createElement() {
+    return _RawSessionsQueryProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is RawSessionsQueryProvider &&
+        other.requireTaskJoin == requireTaskJoin;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, requireTaskJoin.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin RawSessionsQueryRef on FutureProviderRef<List<TypedResult>> {
+  /// The parameter `requireTaskJoin` of this provider.
+  bool get requireTaskJoin;
+}
+
+class _RawSessionsQueryProviderElement
+    extends FutureProviderElement<List<TypedResult>> with RawSessionsQueryRef {
+  _RawSessionsQueryProviderElement(super.provider);
+
+  @override
+  bool get requireTaskJoin =>
+      (origin as RawSessionsQueryProvider).requireTaskJoin;
+}
+
 String _$sessionsByDateRangeHash() =>
-    r'5bc28103be04770b72fb4fa7e46fdeee821a4dd9';
+    r'd468a4f7857c8fbd86ea52a96ebb2a10d78d35ca';
 
 /// See also [sessionsByDateRange].
 @ProviderFor(sessionsByDateRange)
