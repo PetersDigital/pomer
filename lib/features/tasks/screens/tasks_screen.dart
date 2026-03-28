@@ -70,76 +70,102 @@ class TasksScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddTaskModal(context, ref),
+        onPressed: () {
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            builder: (BuildContext context) {
+              return const _AddTaskModal();
+            },
+          );
+        },
         child: const Icon(Icons.add),
       ),
     );
   }
+}
 
-  void _showAddTaskModal(BuildContext context, WidgetRef ref) {
-    final titleController = TextEditingController();
-    final tagController = TextEditingController();
+class _AddTaskModal extends ConsumerStatefulWidget {
+  const _AddTaskModal();
 
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: 16.0,
-            right: 16.0,
-            top: 24.0,
+  @override
+  ConsumerState<_AddTaskModal> createState() => _AddTaskModalState();
+}
+
+class _AddTaskModalState extends ConsumerState<_AddTaskModal> {
+  late final TextEditingController _titleController;
+  late final TextEditingController _tagController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController();
+    _tagController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _tagController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 16.0,
+        right: 16.0,
+        top: 24.0,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Add New Task',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Add New Task',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Task Title',
-                  border: OutlineInputBorder(),
-                ),
-                autofocus: true,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: tagController,
-                decoration: const InputDecoration(
-                  labelText: 'Tag (Optional)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  final title = titleController.text.trim();
-                  final tag = tagController.text.trim();
-
-                  if (title.isNotEmpty) {
-                    ref.read(taskListProvider.notifier).addTask(
-                          title: title,
-                          tag: tag.isEmpty ? null : tag,
-                        );
-                    Navigator.pop(context);
-                  }
-                },
-                child: const Text('Add Task'),
-              ),
-              const SizedBox(height: 24),
-            ],
+          const SizedBox(height: 16),
+          TextField(
+            controller: _titleController,
+            decoration: const InputDecoration(
+              labelText: 'Task Title',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
           ),
-        );
-      },
+          const SizedBox(height: 16),
+          TextField(
+            controller: _tagController,
+            decoration: const InputDecoration(
+              labelText: 'Tag (Optional)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              final title = _titleController.text.trim();
+              final tag = _tagController.text.trim();
+
+              if (title.isNotEmpty) {
+                ref.read(taskListProvider.notifier).addTask(
+                      title: title,
+                      tag: tag.isEmpty ? null : tag,
+                    );
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Add Task'),
+          ),
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 }
