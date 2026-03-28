@@ -19,7 +19,9 @@ class CsvExportService {
 
   Future<void> exportSessions() async {
     final db = _ref.read(appDatabaseProvider);
-    final queryRows = await _ref.read(rawSessionsQueryProvider.future);
+    final queryRows = await _ref.read(
+      rawSessionsQueryProvider(requireTaskJoin: true).future,
+    );
     final dateRange = _ref.read(dateRangeNotifierProvider);
 
     final List<List<dynamic>> rows = [];
