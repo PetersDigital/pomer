@@ -43,7 +43,9 @@ void main() {
 
   testWidgets('Timer screen is shown by default', (tester) async {
     await tester.pumpWidget(const ProviderScope(child: App()));
-    await tester.pumpAndSettle();
+
+    // Let StreamProviders emit and settle
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
     expect(find.text('25:00'), findsOneWidget);
   });
