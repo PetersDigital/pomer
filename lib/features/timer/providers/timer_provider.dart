@@ -20,6 +20,21 @@ import 'package:drift/drift.dart' show Value;
 
 part 'timer_provider.g.dart';
 
+/// Timer state management provider using Riverpod.
+///
+/// Architecture decisions for battery efficiency:
+/// 1. Uses [Timer.periodic] with 1-second intervals (not polling)
+/// 2. Stores [_targetTime] (absolute DateTime) instead of decrementing counter
+///    - More accurate: calculates remaining time from fixed end point
+///    - Prevents drift from accumulated timing errors
+/// 3. Cancellation token via [ref.onDispose] for cleanup
+/// 4. Immediate service stop on timer complete/cancel via [_stopAuxiliaryServices]
+/// 5. Throttled foreground service updates (every 5 seconds) to reduce IPC overhead
+///
+/// State updates:
+/// - UI updates every second (via Timer.periodic)
+/// - Foreground service updates throttled to every 5 seconds
+/// - Final 10 seconds update every second for better UX
 @Riverpod(keepAlive: true)
 class TimerNotifier extends _$TimerNotifier {
   Timer? _timer;
