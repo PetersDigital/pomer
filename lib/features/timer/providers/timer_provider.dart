@@ -225,6 +225,7 @@ class TimerNotifier extends _$TimerNotifier {
     state = TimerState.initial().copyWith(
       totalSeconds: focusDurationSeconds,
       remainingSeconds: focusDurationSeconds,
+      completedCycles: state.completedCycles,
     );
 
     _stopAuxiliaryServices();

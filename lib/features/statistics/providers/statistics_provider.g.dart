@@ -24,7 +24,7 @@ final statisticsTasksStreamProvider = StreamProvider<List<Task>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef StatisticsTasksStreamRef = StreamProviderRef<List<Task>>;
-String _$rawSessionsQueryHash() => r'b90559828958be9ce1b54dc76be6600c4ff7180f';
+String _$rawSessionsQueryHash() => r'4faacbded80cad782f113a2b395ac9fc51f17b06';
 
 /// Copied from Dart SDK
 class _SystemHash {
