@@ -52,10 +52,12 @@ void main() {
 
     // Need to pre-populate the database so taskListProvider returns the task for the DropdownMenu
     final db = container.read(appDatabaseProvider);
-    await db.into(db.tasks).insert(TasksCompanion.insert(
-          id: drift.Value(testTask.id),
-          title: testTask.title,
-        ));
+    await db.into(db.tasks).insert(
+          TasksCompanion.insert(
+            id: drift.Value(testTask.id),
+            title: testTask.title,
+          ),
+        );
 
     // Provide the testTask directly to the provider container state before pumping UI
     container.read(activeTaskProvider.notifier).setActiveTask(testTask);
