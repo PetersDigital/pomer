@@ -66,7 +66,7 @@ class PowerManagementService {
       debugPrint(
         '[PowerManagementService] Screen turned off, releasing wake lock',
       );
-      unawaited(releaseWhenIdle());
+      releaseWhenIdle();
     }
   }
 
