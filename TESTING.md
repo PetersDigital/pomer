@@ -55,7 +55,14 @@ dart run build_runner build --delete-conflicting-outputs
 - **Async Operations**: Be extremely careful with genuine timers and platform method channels.
   - If a widget starts a real timer (e.g., `TimerScreen` starting a Pomodoro session), use `tester.runAsync(() async { ... })` for the interaction, followed by `await tester.pump()`.
   - Always clean up active timers before the end of the test (e.g., by tapping "Pause" or "Reset").
+  - For dialogs with "Don't ask again" checkboxes (e.g., reset confirmation), use `StatefulBuilder`-aware pumping and verify both dialog state and SharedPreferences persistence.
 - **Animations and Streams**: Use `await tester.pumpAndSettle()` or explicit delays (`await tester.pump(const Duration(milliseconds: ...))`) to wait for `StreamProvider`s or animations to complete.
+
+### 4. Battery & Power Management Tests (v0.6.0+)
+- **Platform detection**: Tests must verify behavior on Android vs non-Android platforms.
+- **Wake lock lifecycle**: Test that wake locks are released when screen turns off or timer pauses.
+- **Battery optimization**: Test user education messages and status caching.
+- **Example**: See `test/core/services/power_management_service_test.dart` and `test/core/services/battery_optimization_service_test.dart`
 
 ## Strict Linting Rules
 
