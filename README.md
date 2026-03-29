@@ -21,7 +21,7 @@ Pomer is a clean, Material 3 Pomodoro timer app designed to help you stay focuse
 | **v0.3.0** ✅ | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
 | **v0.4.0** ✅ | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
 | **v0.5.0** ✅ | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
-| v0.6.0 | Task Tracking — Task binding, task list, tags, task-filtered statistics |
+| **v0.6.0** ✅ | Task Tracking & Battery Optimization — Task binding, task list, tags, task-filtered statistics, battery drain fixes |
 | v0.7.0 | Gamification — Plant rewards, garden collection, streaks, unlock progression |
 | v0.8.0 | Platform Hardening — App icons, splash screen, PWA, responsive layout, accessibility |
 | v0.9.0 | Polish & Bug Bash — Animations, onboarding, edge cases, integration tests, final polish |

@@ -32,6 +32,17 @@ Each feature (`timer`, `settings`, `statistics`, `tasks`, `gamification`) is a s
 
 This keeps feature code isolated, making it easy to add, remove, or refactor features without cross-cutting concerns.
 
+### Cross-feature communication
+
+Shared providers that need to be accessed across features live in `core/providers/`:
+- `task_list_provider` — Reactive task list and active task selection
+- `database_provider` — Drift database connection singleton
+- `active_task_provider` — Active task binding state
+- `power_management_provider` — Wake lock service
+- `battery_optimization_provider` — Battery optimization detection
+
+**Rule:** Features must import from `core/` only, never from other `features/`.
+
 ---
 
 ## Folder Structure
@@ -47,7 +58,20 @@ lib/
 │   │   └── app_theme.dart      # Material 3 light/dark themes, Google Fonts
 │   ├── utils/
 │   │   └── platform_utils.dart # Static platform detection helpers
-│   └── services/               # Shared services (e.g., audio, notifications)
+│   ├── providers/              # Shared Riverpod providers (v0.6.0+)
+│   │   ├── task_list_provider.dart
+│   │   ├── active_task_provider.dart
+│   │   ├── database_provider.dart
+│   │   ├── power_management_provider.dart
+│   │   └── battery_optimization_provider.dart
+│   ├── services/               # Shared services (e.g., audio, notifications)
+│   │   ├── audio_service.dart
+│   │   ├── notification_service.dart
+│   │   ├── foreground_service.dart
+│   │   ├── power_management_service.dart
+│   │   └── battery_optimization_service.dart
+│   └── logging/
+│       └── timer_diagnostics.dart  # Structured timer event logging
 ├── features/
 │   ├── timer/                  # Pomodoro timer feature (v0.2.0)
 │   ├── settings/               # User preferences feature (v0.3.0)
@@ -70,6 +94,7 @@ Pomer uses [Riverpod](https://riverpod.dev) (v2.x) for all state management.
 - Providers live in `features/<feature>/providers/` or `core/` for shared state.
 - Always use `ref.watch` in `build` methods and `ref.read` in callbacks.
 - Prefer `AsyncNotifierProvider` for async data (database, network).
+- Use `StreamProvider` for reactive filter state (e.g., statistics filters).
 
 ### Example provider structure (future feature)
 
@@ -86,6 +111,17 @@ class TimerNotifier extends _$TimerNotifier {
 }
 ```
 
+### Battery efficiency patterns
+
+Timer providers follow battery-efficient patterns:
+1. Use `Timer.periodic` with 1-second intervals (not polling)
+2. Store `_targetTime` (absolute DateTime) instead of decrementing counter
+3. Cancellation token via `ref.onDispose` for cleanup
+4. Immediate service stop on timer complete/cancel
+5. Throttled foreground service updates (every 5 seconds)
+
+See `lib/features/timer/providers/timer_provider.dart` for detailed architecture documentation.
+
 ---
 
 ## Navigation — GoRouter
@@ -99,10 +135,11 @@ Navigation uses [GoRouter](https://pub.dev/packages/go_router) with a `ShellRout
 | `/`         | `TimerScreen`      | 0         |
 | `/stats`    | `StatisticsScreen` | 1         |
 | `/settings` | `SettingsScreen`   | 2         |
+| `/tasks`    | `TasksScreen`      | 3 (v0.6.0+) |
 
 ### Deep linking
 
-GoRouter enables declarative deep linking on all platforms. Future features should add sub-routes under the existing top-level routes (e.g., `/stats/detail`).
+GoRouter enables declarative deep linking on all platforms. Future features should add sub-routes under the existing top-level routes (e.g., `/stats/detail`, `/tasks/:id`).
 
 ---
 
@@ -131,6 +168,41 @@ No persistent data. Timer state is in-memory only. Theme mode defaults to system
 - Each feature accesses the database through its own Drift DAO.
 - CSV export support for session data (UTF-8 encoded).
 
+### v0.6.0+
+- **Task data model** with tags support (many-to-many relationship).
+- **Session-task join queries** for filtered statistics.
+- **Raw SQL queries** optimized with `requireTaskJoin` flag to avoid unnecessary joins.
+
+---
+
+## Service Layer
+
+### Core Services (v0.6.0+)
+
+Services in `core/services/` provide platform-specific functionality:
+
+| Service | Purpose |
+|---------|---------|
+| `AudioService` | Unified audio playback with platform-specific backends |
+| `NotificationService` | Cross-platform notifications with web/Windows helpers |
+| `ForegroundService` | Android foreground service for timer continuity |
+| `PowerManagementService` | Wake lock lifecycle management based on screen state |
+| `BatteryOptimizationService` | Battery optimization detection and user education |
+| `TimerDiagnostics` | Structured logging for timer events and battery diagnostics |
+
+### Service architecture
+
+Services are:
+- Platform-aware (detect Android/Windows/Web at runtime)
+- Testable (abstracted behind interfaces for mocking)
+- Lifecycle-managed (acquire/release resources appropriately)
+
+Example: `PowerManagementService` acquires wake lock only when:
+1. Screen is ON
+2. Timer is RUNNING
+
+And releases when either condition becomes false.
+
 ---
 
 ## Coding Conventions
@@ -144,6 +216,7 @@ No persistent data. Timer state is in-memory only. Theme mode defaults to system
 7. **`super.key`** — Use `super.key` parameter syntax in widget constructors (Dart 3+).
 8. **Screen naming** — All route screens are named `<Feature>Screen` and live in `features/<feature>/screens/`.
 9. **Audio format** — Use `.ogg` for runtime audio playback. `.mp3` is deprecated and scheduled for removal.
+10. **Diagnostics logging** — Use `timerDiagnostics` for timer-related events. See `lib/core/logging/timer_diagnostics.dart`.
 
 ### Audio Format Rationale
 
@@ -160,15 +233,20 @@ No persistent data. Timer state is in-memory only. Theme mode defaults to system
 - Target SDK: 34 (Android 14)
 - Application ID: `com.petersdigital.pomer`
 - Main activity: `com.petersdigital.pomer.MainActivity` (extends `FlutterActivity`)
+- Foreground service: Required for timer continuity when app is backgrounded
+- Battery optimization: Detected and educated via `BatteryOptimizationService`
 
 ### Windows
 - Built with CMake + MSVC
 - Window title: "Pomer"
 - Initial size: 1280×720
+- Audio backend: `media_kit` via `just_audio_media_kit`
 
 ### Web
 - PWA-capable (`manifest.json` + service worker)
 - Theme color: `#E53935`
+- WASM support: Required for SQLite via `sqlite3_flutter_libs`
+- Notifications: Browser Notification API via `web` package
 
 ---
 
@@ -204,7 +282,7 @@ Release notes are generated from the matching section in `CHANGELOG.md` for the 
 | v0.3.0 ✅ | Settings & Customization — Custom durations, presets, auto-start, theme selector, keep screen on |
 | v0.4.0 ✅ | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
 | v0.5.0 ✅ | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
-| v0.6.0 | Task Tracking — Task binding, task list, tags, task-filtered statistics |
+| v0.6.0 ✅ | Task Tracking & Battery Optimization — Task binding, task list, tags, task-filtered statistics, battery drain fixes |
 | v0.7.0 | Gamification — Plant rewards, garden collection, streaks, unlock progression |
 | v0.8.0 | Platform Hardening — App icons, splash screen, PWA, responsive layout, accessibility |
 | v0.9.0 | Polish & Bug Bash — Animations, onboarding, edge cases, integration tests, final polish |

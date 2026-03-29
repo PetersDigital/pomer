@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - Task Tracking & Battery Optimization
+
+### Added
+- **Task tracking UI:** Built complete task management interface with add, edit, delete, and completion toggle functionality.
+- **Task list state management:** Implemented `task_list_provider` in `core/providers` for reactive task list and active task selection.
+- **Active task binding:** Timer now displays and binds to selected task, showing task name and tags during focus sessions.
+- **Task-filtered statistics:** Statistics screen now filters sessions by selected task or tag, enabling task-specific productivity insights.
+- **Task tag support:** Tasks can have multiple tags; statistics can be filtered by individual tags.
+- **CSV export with task data:** Exported session data now includes task name and tags columns for external analysis.
+- **Battery optimization detection:** Added `BatteryOptimizationService` to detect and educate users about Android battery optimization settings.
+- **Power management service:** Implemented `PowerManagementService` for intelligent wake lock management based on screen state.
+- **Timer diagnostics logging:** Added structured logging for timer events, foreground service actions, and battery-related diagnostics.
+- **Full session reset button:** Added "Start Fresh" button with confirmation dialog to reset all completed cycles and sessions.
+- **Don't ask again preference:** Session reset confirmation can be permanently dismissed via SharedPreferences.
+- **Comprehensive test suite:** Added unit tests for battery optimization, power management, timer controls, statistics screen, and tasks screen.
+
+### Changed
+- **Feature isolation enforcement:** Moved `task_list_provider` from `features/tasks` to `core/providers` to maintain architectural boundaries.
+- **Statistics filter reactivity:** Converted statistics filter selector to use `StreamProvider` for reactive updates.
+- **Filter mutation API:** Simplified statistics filter provider with `clearFilters()` method and consolidated mutation methods.
+- **Task modal architecture:** Refactored add-task dialog to use `StatefulWidget` for proper text controller lifecycle management.
+- **Audio normalization:** Implemented per-category LUFS normalization for alarm, ambience, and break audio tracks.
+- **Database query optimization:** Extracted `rawSessionsQuery` provider to eliminate duplicated joins in statistics and CSV export.
+
+### Fixed
+- **Battery drain:** Throttled foreground service updates from every tick to every 5 seconds, reducing IPC calls by ~80%.
+- **Wake lock retention:** Wake locks now released when screen turns off or timer pauses, allowing device deep sleep.
+- **Foreground service configuration:** Reduced notification importance to `MIN` and callback interval to 1s for battery efficiency.
+- **Invalid service parameter:** Removed non-existent `ignoreBatteryOptimization` parameter from foreground service init.
+- **Timer phase reset:** Resolved issues with timer phase transitions and database preparation for session logging.
+- **Statistics filter type safety:** Enforced proper type handling in filter selector tasks list to prevent runtime errors.
+- **CSV export encoding:** Added missing `dart:typed_data` import for proper UTF-8 byte conversion in web exports.
+- **Mock services setup:** Refined mock services configuration and removed unused test dependencies.
+
+### Performance
+- **Foreground service overhead:** Reduced battery drain from ~10-15%/hour to <5%/hour during timer sessions.
+- **CPU wake-ups:** Throttled foreground updates reduced context switches between Dart isolate and Android service.
+- **Statistics query efficiency:** Consolidated session queries eliminated redundant database joins.
+
+### Docs & Tooling
+- Added `TESTING.md` with comprehensive testing architecture and guidelines.
+- Added architecture documentation to `TimerNotifier` explaining battery efficiency patterns.
+- Regenerated Riverpod and Drift generated files for all new providers.
+- Updated mock services with `PowerManagementService` and `BatteryOptimizationService` mocks.
+
 ## [0.5.0] - Statistics & Database
 ### Added
 - **Drift/SQLite database:** Integrated Drift ORM with platform-specific connections (native SQLite on Android/Windows, IndexedDB with WASM fallback on Web).
