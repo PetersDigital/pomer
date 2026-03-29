@@ -6,12 +6,15 @@
 import 'dart:async' as _i3;
 
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i8;
 import 'package:pomer/core/services/audio_service.dart' as _i2;
+import 'package:pomer/core/services/battery_optimization_service.dart' as _i7;
 import 'package:pomer/core/services/foreground_service.dart' as _i5;
 import 'package:pomer/core/services/notification_service.dart' as _i4;
+import 'package:pomer/core/services/power_management_service.dart' as _i6;
 import 'package:pomer/features/statistics/services/csv_export_service.dart'
-    as _i6;
-import 'package:shared_preferences/src/shared_preferences_async.dart' as _i7;
+    as _i9;
+import 'package:shared_preferences/src/shared_preferences_async.dart' as _i10;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -234,10 +237,129 @@ class MockForegroundService extends _i1.Mock implements _i5.ForegroundService {
       ) as _i3.Future<void>);
 }
 
+/// A class which mocks [PowerManagementService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockPowerManagementService extends _i1.Mock
+    implements _i6.PowerManagementService {
+  @override
+  bool get isWakeLockHeld => (super.noSuchMethod(
+        Invocation.getter(#isWakeLockHeld),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  _i3.Future<void> acquireForTimer() => (super.noSuchMethod(
+        Invocation.method(
+          #acquireForTimer,
+          [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> releaseWhenIdle() => (super.noSuchMethod(
+        Invocation.method(
+          #releaseWhenIdle,
+          [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  void updateScreenState(bool? isScreenOn) => super.noSuchMethod(
+        Invocation.method(
+          #updateScreenState,
+          [isScreenOn],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i3.Future<void> syncWithTimerState(bool? isRunning) => (super.noSuchMethod(
+        Invocation.method(
+          #syncWithTimerState,
+          [isRunning],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+}
+
+/// A class which mocks [BatteryOptimizationService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockBatteryOptimizationService extends _i1.Mock
+    implements _i7.BatteryOptimizationService {
+  @override
+  _i3.Future<bool?> isBatteryOptimized() => (super.noSuchMethod(
+        Invocation.method(
+          #isBatteryOptimized,
+          [],
+        ),
+        returnValue: _i3.Future<bool?>.value(),
+        returnValueForMissingStub: _i3.Future<bool?>.value(),
+      ) as _i3.Future<bool?>);
+
+  @override
+  _i3.Future<bool> isIgnoringBatteryOptimizations() => (super.noSuchMethod(
+        Invocation.method(
+          #isIgnoringBatteryOptimizations,
+          [],
+        ),
+        returnValue: _i3.Future<bool>.value(false),
+        returnValueForMissingStub: _i3.Future<bool>.value(false),
+      ) as _i3.Future<bool>);
+
+  @override
+  _i3.Future<void> logBatteryOptimizationStatus() => (super.noSuchMethod(
+        Invocation.method(
+          #logBatteryOptimizationStatus,
+          [],
+        ),
+        returnValue: _i3.Future<void>.value(),
+        returnValueForMissingStub: _i3.Future<void>.value(),
+      ) as _i3.Future<void>);
+
+  @override
+  void updateStatus(bool? isOptimized) => super.noSuchMethod(
+        Invocation.method(
+          #updateStatus,
+          [isOptimized],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  String getUserEducationMessage() => (super.noSuchMethod(
+        Invocation.method(
+          #getUserEducationMessage,
+          [],
+        ),
+        returnValue: _i8.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getUserEducationMessage,
+            [],
+          ),
+        ),
+        returnValueForMissingStub: _i8.dummyValue<String>(
+          this,
+          Invocation.method(
+            #getUserEducationMessage,
+            [],
+          ),
+        ),
+      ) as String);
+}
+
 /// A class which mocks [CsvExportService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockCsvExportService extends _i1.Mock implements _i6.CsvExportService {
+class MockCsvExportService extends _i1.Mock implements _i9.CsvExportService {
   @override
   _i3.Future<void> exportSessions() => (super.noSuchMethod(
         Invocation.method(
@@ -253,7 +375,7 @@ class MockCsvExportService extends _i1.Mock implements _i6.CsvExportService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockSharedPreferencesAsync extends _i1.Mock
-    implements _i7.SharedPreferencesAsync {
+    implements _i10.SharedPreferencesAsync {
   @override
   _i3.Future<Set<String>> getKeys({Set<String>? allowList}) =>
       (super.noSuchMethod(
