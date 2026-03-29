@@ -3,7 +3,7 @@ class AppConstants {
   AppConstants._();
 
   static const String appName = 'Pomer';
-  static const String appVersion = '0.5.0';
+  static const String appVersion = '0.6.0';
   static const String developer = 'Dencel K Babu';
   static const String company = 'PetersDigital';
   static const String packageName = 'com.petersdigital.pomer';
