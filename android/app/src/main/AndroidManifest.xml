@@ -8,9 +8,12 @@
     <!-- Required for flutter_foreground_task -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <!-- WAKE_LOCK is only used when screen is on during active timer sessions -->
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <!-- Required for notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Request exemption from battery optimization (optional, user can deny) -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_EXCEPTIONS"/>
 
     <application
         android:label="Pomer"

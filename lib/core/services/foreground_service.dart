@@ -53,8 +53,8 @@ class ForegroundService {
         channelId: 'pomer_foreground_service',
         channelName: 'Foreground Timer Service',
         channelDescription: 'Ongoing notification for Pomer timer',
-        channelImportance: NotificationChannelImportance.LOW,
-        priority: NotificationPriority.LOW,
+        channelImportance: NotificationChannelImportance.MIN,
+        priority: NotificationPriority.MIN,
         visibility: NotificationVisibility.VISIBILITY_PUBLIC,
       ),
       iosNotificationOptions: const IOSNotificationOptions(
@@ -62,11 +62,12 @@ class ForegroundService {
         playSound: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(15000),
+        eventAction: ForegroundTaskEventAction.repeat(1000),
         autoRunOnBoot: false,
         stopWithTask: true,
         allowWakeLock: false,
         allowWifiLock: false,
+        ignoreBatteryOptimization: false,
       ),
     );
   }
