@@ -23,7 +23,8 @@ void main() {
       }
     });
 
-    test('isIgnoringBatteryOptimizations returns false on non-Android', () async {
+    test('isIgnoringBatteryOptimizations returns false on non-Android',
+        () async {
       if (!PlatformUtils.isAndroid) {
         final result = await service.isIgnoringBatteryOptimizations();
         expect(result, isFalse);

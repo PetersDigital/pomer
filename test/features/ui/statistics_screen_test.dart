@@ -10,13 +10,15 @@ import 'package:drift/drift.dart' as drift;
 import '../../helpers/test_helpers.dart';
 
 void main() {
-  testWidgets('StatisticsScreen clears active filter when "All" chip is tapped', (tester) async {
+  testWidgets('StatisticsScreen clears active filter when "All" chip is tapped',
+      (tester) async {
     final container = createTestContainer();
     final notifier = container.read(statisticsFilterNotifierProvider.notifier);
 
     // Initial state setup:
     notifier.setTaskFilter('fake-task-id');
-    expect(container.read(statisticsFilterNotifierProvider).taskId, 'fake-task-id');
+    expect(container.read(statisticsFilterNotifierProvider).taskId,
+        'fake-task-id',);
 
     await tester.pumpWidget(
       UncontrolledProviderScope(

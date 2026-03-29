@@ -35,7 +35,11 @@ void main() {
   group('PowerManagementService Platform Detection', () {
     test('PlatformUtils detects current platform', () {
       // Platform detection should work
-      expect(PlatformUtils.isAndroid || PlatformUtils.isWindows || PlatformUtils.isWeb, true);
+      expect(
+          PlatformUtils.isAndroid ||
+              PlatformUtils.isWindows ||
+              PlatformUtils.isWeb,
+          true,);
     });
   });
 }

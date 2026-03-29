@@ -7,7 +7,8 @@ void main() {
   group('StatisticsFilterNotifier', () {
     test('setting Task ID correctly nullifies the Tag, and vice versa', () {
       final container = createTestContainer();
-      final notifier = container.read(statisticsFilterNotifierProvider.notifier);
+      final notifier =
+          container.read(statisticsFilterNotifierProvider.notifier);
 
       notifier.setTaskFilter('task-123');
       var state = container.read(statisticsFilterNotifierProvider);

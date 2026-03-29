@@ -6,7 +6,8 @@ import 'package:pomer/features/tasks/screens/tasks_screen.dart';
 import '../../helpers/test_helpers.dart';
 
 void main() {
-  testWidgets('TasksScreen allows adding and completing a task', (tester) async {
+  testWidgets('TasksScreen allows adding and completing a task',
+      (tester) async {
     final container = createTestContainer();
 
     await tester.pumpWidget(

@@ -10,7 +10,8 @@ import '../../helpers/mock_services.mocks.dart';
 
 void main() {
   group('TimerNotifier State Transitions', () {
-    test('Phase transitions exactly as expected: F -> SB -> F -> SB -> F -> LB', () async {
+    test('Phase transitions exactly as expected: F -> SB -> F -> SB -> F -> LB',
+        () async {
       final mockAudioService = MockAudioService();
       final mockNotificationService = MockNotificationService();
       final mockForegroundService = MockForegroundService();
@@ -18,7 +19,8 @@ void main() {
       final container = createTestContainer(
         overrides: [
           audioServiceProvider.overrideWithValue(mockAudioService),
-          notificationServiceProvider.overrideWithValue(mockNotificationService),
+          notificationServiceProvider
+              .overrideWithValue(mockNotificationService),
           foregroundServiceProvider.overrideWithValue(mockForegroundService),
         ],
       );
@@ -30,7 +32,8 @@ void main() {
 
       // Focus -> Short Break (Skip to fast-forward)
       notifier.skip();
-      expect(container.read(timerNotifierProvider).phase, TimerPhase.shortBreak);
+      expect(
+          container.read(timerNotifierProvider).phase, TimerPhase.shortBreak,);
       expect(container.read(timerNotifierProvider).completedCycles, 1);
 
       // Short Break -> Focus
@@ -39,7 +42,8 @@ void main() {
 
       // Focus -> Short Break
       notifier.skip();
-      expect(container.read(timerNotifierProvider).phase, TimerPhase.shortBreak);
+      expect(
+          container.read(timerNotifierProvider).phase, TimerPhase.shortBreak,);
       expect(container.read(timerNotifierProvider).completedCycles, 2);
 
       // Short Break -> Focus
@@ -48,7 +52,8 @@ void main() {
 
       // Focus -> Short Break
       notifier.skip();
-      expect(container.read(timerNotifierProvider).phase, TimerPhase.shortBreak);
+      expect(
+          container.read(timerNotifierProvider).phase, TimerPhase.shortBreak,);
       expect(container.read(timerNotifierProvider).completedCycles, 3);
 
       // Short Break -> Focus
@@ -63,7 +68,8 @@ void main() {
       container.dispose();
     });
 
-    test('reset() correctly resets the phase without wiping completedCycles', () {
+    test('reset() correctly resets the phase without wiping completedCycles',
+        () {
       final mockAudioService = MockAudioService();
       final mockNotificationService = MockNotificationService();
       final mockForegroundService = MockForegroundService();
@@ -71,7 +77,8 @@ void main() {
       final container = createTestContainer(
         overrides: [
           audioServiceProvider.overrideWithValue(mockAudioService),
-          notificationServiceProvider.overrideWithValue(mockNotificationService),
+          notificationServiceProvider
+              .overrideWithValue(mockNotificationService),
           foregroundServiceProvider.overrideWithValue(mockForegroundService),
         ],
       );
@@ -80,7 +87,8 @@ void main() {
 
       // Skip 3 times to get to Short Break with 1 cycle
       notifier.skip();
-      expect(container.read(timerNotifierProvider).phase, TimerPhase.shortBreak);
+      expect(
+          container.read(timerNotifierProvider).phase, TimerPhase.shortBreak,);
       expect(container.read(timerNotifierProvider).completedCycles, 1);
 
       // Reset
@@ -88,7 +96,8 @@ void main() {
 
       final finalState = container.read(timerNotifierProvider);
       expect(finalState.phase, TimerPhase.focus); // Reset back to focus
-      expect(finalState.completedCycles, 1); // Wiping completed cycles is incorrect, should retain
+      expect(finalState.completedCycles,
+          1,); // Wiping completed cycles is incorrect, should retain
 
       container.dispose();
     });
