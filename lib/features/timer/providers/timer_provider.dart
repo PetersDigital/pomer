@@ -12,7 +12,6 @@ import 'package:pomer/core/services/foreground_service.dart';
 import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
 import 'package:pomer/core/providers/database_provider.dart';
-import 'package:pomer/core/providers/power_management_provider.dart';
 import 'package:pomer/core/logging/timer_diagnostics.dart';
 import 'package:pomer/database/database.dart';
 import 'package:pomer/core/providers/active_task_provider.dart';
@@ -41,8 +40,6 @@ class TimerNotifier extends _$TimerNotifier {
   DateTime? _targetTime;
   DateTime? _sessionStartTime;
   int _lastForegroundUpdateSeconds = -1;
-  int _foregroundUpdateCount = 0;
-  int _timerTickCount = 0;
 
   @override
   TimerState build() {
