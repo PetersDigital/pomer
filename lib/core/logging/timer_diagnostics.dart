@@ -105,7 +105,8 @@ class TimerDiagnostics {
   /// Logs a general timer event.
   void logTimerEvent(String event, {Map<String, dynamic>? data}) {
     if (_debugModeEnabled) {
-      final dataStr = data?.entries.map((e) => '${e.key}=${e.value}').join(', ') ?? '';
+      final dataStr =
+          data?.entries.map((e) => '${e.key}=${e.value}').join(', ') ?? '';
       log('Event: $event ${dataStr.isNotEmpty ? '($dataStr)' : ''}');
     }
   }

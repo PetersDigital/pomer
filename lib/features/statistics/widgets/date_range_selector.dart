@@ -29,7 +29,8 @@ class DateRangeSelector extends ConsumerWidget {
           notifier.setPreset(newValue);
         }
       },
-      items: DateRangePreset.values.map<DropdownMenuItem<DateRangePreset>>((DateRangePreset value) {
+      items: DateRangePreset.values
+          .map<DropdownMenuItem<DateRangePreset>>((DateRangePreset value) {
         return DropdownMenuItem<DateRangePreset>(
           value: value,
           child: Text(value.label),

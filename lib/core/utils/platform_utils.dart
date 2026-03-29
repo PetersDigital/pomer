@@ -4,8 +4,10 @@ import 'package:flutter/foundation.dart';
 class PlatformUtils {
   PlatformUtils._();
 
-  static bool get isAndroid => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-  static bool get isWindows => !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
+  static bool get isAndroid =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  static bool get isWindows =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
   static bool get isWeb => kIsWeb;
 
   /// Desktop targets currently supported by Pomer (expand if macOS/Linux added).

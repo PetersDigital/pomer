@@ -58,7 +58,8 @@ class TimerNotifier extends _$TimerNotifier {
 
     // Listen to background actions
     ref.read(foregroundServiceProvider).registerActionCallback((action) {
-      timerDiagnostics.logTimerEvent('foreground_action', data: {'action': action});
+      timerDiagnostics
+          .logTimerEvent('foreground_action', data: {'action': action});
       if (action == 'pause') {
         pause();
       } else if (action == 'resume') {
@@ -246,6 +247,32 @@ class TimerNotifier extends _$TimerNotifier {
       totalSeconds: focusDurationSeconds,
       remainingSeconds: focusDurationSeconds,
       completedCycles: state.completedCycles,
+    );
+
+    _stopAuxiliaryServices();
+  }
+
+  void resetFullSession() {
+    unawaited(_handleSessionLogging(isCompleted: false, status: 'interrupted'));
+
+    _timer?.cancel();
+    _timer = null;
+    _targetTime = null;
+    _sessionStartTime = null;
+
+    final settingsAsync = ref.read(settingsNotifierProvider);
+    final settings = settingsAsync.valueOrNull;
+    final isTesting = settings?.selectedPreset == TimerPreset.testing;
+
+    final focusDurationSeconds = isTesting
+        ? 30
+        : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
+
+    state = TimerState.initial().copyWith(
+      totalSeconds: focusDurationSeconds,
+      remainingSeconds: focusDurationSeconds,
+      completedCycles: 0,
+      totalSessionsCompleted: 0,
     );
 
     _stopAuxiliaryServices();

@@ -18,8 +18,10 @@ class SummaryStatsCard extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _StatColumn('Focus Time', _formatDuration(stats.totalFocusSeconds)),
-                _StatColumn('Break Time', _formatDuration(stats.totalBreakSeconds)),
+                _StatColumn(
+                    'Focus Time', _formatDuration(stats.totalFocusSeconds),),
+                _StatColumn(
+                    'Break Time', _formatDuration(stats.totalBreakSeconds),),
                 _StatColumn('Incomplete', stats.incompleteSessions.toString()),
               ],
             ),
@@ -57,9 +59,9 @@ class _StatColumn extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
         ),
         const SizedBox(height: 4),
         Text(

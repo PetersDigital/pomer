@@ -39,9 +39,8 @@ class TasksScreen extends ConsumerWidget {
                 title: Text(
                   task.title,
                   style: TextStyle(
-                    decoration: task.isCompleted
-                        ? TextDecoration.lineThrough
-                        : null,
+                    decoration:
+                        task.isCompleted ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 subtitle: task.tag != null

@@ -19,37 +19,44 @@ class FocusBarChart extends ConsumerWidget {
 
         // If the range is massive (e.g. All Time), capping the UI days makes it performant.
         // We will collect the actual days that have sessions first, and then build a bounded range.
-        final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+        final today = DateTime(
+            DateTime.now().year, DateTime.now().month, DateTime.now().day,);
         DateTime minDate = today;
         DateTime maxDate = today;
 
         if (dateRange.preset == DateRangePreset.allTime) {
           if (sessions.isNotEmpty) {
             final firstSessionDate = sessions.first.startTime;
-            minDate = DateTime(firstSessionDate.year, firstSessionDate.month, firstSessionDate.day);
+            minDate = DateTime(firstSessionDate.year, firstSessionDate.month,
+                firstSessionDate.day,);
           }
         } else {
-           minDate = DateTime(dateRange.start.year, dateRange.start.month, dateRange.start.day);
-           maxDate = DateTime(dateRange.end.year, dateRange.end.month, dateRange.end.day);
+          minDate = DateTime(
+              dateRange.start.year, dateRange.start.month, dateRange.start.day,);
+          maxDate = DateTime(
+              dateRange.end.year, dateRange.end.month, dateRange.end.day,);
         }
 
         // Ensure we don't render more than ~100 bars to prevent UI freezing
         if (maxDate.difference(minDate).inDays > 100) {
-           minDate = maxDate.subtract(const Duration(days: 100));
+          minDate = maxDate.subtract(const Duration(days: 100));
         }
 
         // Populate days in bounds
-        for (var d = minDate; !d.isAfter(maxDate); d = d.add(const Duration(days: 1))) {
-           focusByDay[DateTime(d.year, d.month, d.day)] = 0;
+        for (var d = minDate;
+            !d.isAfter(maxDate);
+            d = d.add(const Duration(days: 1))) {
+          focusByDay[DateTime(d.year, d.month, d.day)] = 0;
         }
 
         // Aggregate focus duration by day
         for (final session in sessions) {
           if (session.phaseType == 'focus') {
-             final day = DateTime(session.startTime.year, session.startTime.month, session.startTime.day);
-             if (focusByDay.containsKey(day)) {
-               focusByDay[day] = focusByDay[day]! + session.durationSeconds;
-             }
+            final day = DateTime(session.startTime.year,
+                session.startTime.month, session.startTime.day,);
+            if (focusByDay.containsKey(day)) {
+              focusByDay[day] = focusByDay[day]! + session.durationSeconds;
+            }
           }
         }
 
@@ -61,19 +68,21 @@ class FocusBarChart extends ConsumerWidget {
           final day = sortedDays[i];
           final durationMinutes = focusByDay[day]! / 60.0;
           if (durationMinutes > maxDuration) {
-             maxDuration = durationMinutes;
+            maxDuration = durationMinutes;
           }
-          spots.add(BarChartGroupData(
-            x: i,
-            barRods: [
-              BarChartRodData(
-                toY: durationMinutes,
-                color: Theme.of(context).colorScheme.primary,
-                width: 16,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ],
-          ),);
+          spots.add(
+            BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(
+                  toY: durationMinutes,
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 16,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ],
+            ),
+          );
         }
 
         return AspectRatio(
@@ -132,8 +141,10 @@ class FocusBarChart extends ConsumerWidget {
                       },
                     ),
                   ),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),),
+                  rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),),
                 ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),

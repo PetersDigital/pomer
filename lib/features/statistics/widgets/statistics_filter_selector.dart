@@ -32,16 +32,20 @@ class StatisticsFilterSelector extends ConsumerWidget {
             children: [
               FilterChip(
                 label: const Text('All'),
-                selected: currentFilter.taskId == null && currentFilter.tag == null,
+                selected:
+                    currentFilter.taskId == null && currentFilter.tag == null,
                 onSelected: (selected) {
                   if (selected) {
-                    ref.read(statisticsFilterNotifierProvider.notifier).clearFilters();
+                    ref
+                        .read(statisticsFilterNotifierProvider.notifier)
+                        .clearFilters();
                   }
                 },
               ),
               if (tags.isNotEmpty) ...[
                 const SizedBox(width: 16),
-                const Text('Tags:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text('Tags:',
+                    style: TextStyle(fontWeight: FontWeight.bold),),
                 const SizedBox(width: 8),
                 ...tags.map(
                   (tag) => Padding(
@@ -60,7 +64,8 @@ class StatisticsFilterSelector extends ConsumerWidget {
               ],
               if (tasks.isNotEmpty) ...[
                 const SizedBox(width: 16),
-                const Text('Tasks:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text('Tasks:',
+                    style: TextStyle(fontWeight: FontWeight.bold),),
                 const SizedBox(width: 8),
                 ...tasks.map(
                   (task) => Padding(

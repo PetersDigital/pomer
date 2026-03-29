@@ -30,7 +30,8 @@ class StatisticsScreen extends ConsumerWidget {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('Clear Statistics'),
-                  content: const Text('Are you sure you want to clear all session history? This cannot be undone.'),
+                  content: const Text(
+                      'Are you sure you want to clear all session history? This cannot be undone.',),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),

@@ -21,7 +21,8 @@ class Tasks extends Table {
   TextColumn get title => text()();
   TextColumn get tag => text().nullable()();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
-  DateTimeColumn get createdAt => dateTime().clientDefault(() => DateTime.now())();
+  DateTimeColumn get createdAt =>
+      dateTime().clientDefault(() => DateTime.now())();
 
   @override
   Set<Column> get primaryKey => {id};
