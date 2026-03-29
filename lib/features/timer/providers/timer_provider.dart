@@ -12,15 +12,34 @@ import 'package:pomer/core/services/foreground_service.dart';
 import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
 import 'package:pomer/core/providers/database_provider.dart';
+import 'package:pomer/core/logging/timer_diagnostics.dart';
 import 'package:pomer/database/database.dart';
+import 'package:pomer/core/providers/active_task_provider.dart';
+import 'package:drift/drift.dart' show Value;
 
 part 'timer_provider.g.dart';
 
+/// Timer state management provider using Riverpod.
+///
+/// Architecture decisions for battery efficiency:
+/// 1. Uses [Timer.periodic] with 1-second intervals (not polling)
+/// 2. Stores [_targetTime] (absolute DateTime) instead of decrementing counter
+///    - More accurate: calculates remaining time from fixed end point
+///    - Prevents drift from accumulated timing errors
+/// 3. Cancellation token via [ref.onDispose] for cleanup
+/// 4. Immediate service stop on timer complete/cancel via [_stopAuxiliaryServices]
+/// 5. Throttled foreground service updates (every 5 seconds) to reduce IPC overhead
+///
+/// State updates:
+/// - UI updates every second (via Timer.periodic)
+/// - Foreground service updates throttled to every 5 seconds
+/// - Final 10 seconds update every second for better UX
 @Riverpod(keepAlive: true)
 class TimerNotifier extends _$TimerNotifier {
   Timer? _timer;
   DateTime? _targetTime;
   DateTime? _sessionStartTime;
+  int _lastForegroundUpdateSeconds = -1;
 
   @override
   TimerState build() {
@@ -30,13 +49,17 @@ class TimerNotifier extends _$TimerNotifier {
 
     ref.onDispose(() {
       _timer?.cancel();
+      timerDiagnostics.logForegroundServiceStop();
       unawaited(audioService.stopAmbient());
       unawaited(foregroundService.stopService());
       unawaited(notificationService.cancelAllNotifications());
+      timerDiagnostics.log('TimerNotifier disposed');
     });
 
     // Listen to background actions
     ref.read(foregroundServiceProvider).registerActionCallback((action) {
+      timerDiagnostics
+          .logTimerEvent('foreground_action', data: {'action': action});
       if (action == 'pause') {
         pause();
       } else if (action == 'resume') {
@@ -223,6 +246,33 @@ class TimerNotifier extends _$TimerNotifier {
     state = TimerState.initial().copyWith(
       totalSeconds: focusDurationSeconds,
       remainingSeconds: focusDurationSeconds,
+      completedCycles: state.completedCycles,
+    );
+
+    _stopAuxiliaryServices();
+  }
+
+  void resetFullSession() {
+    unawaited(_handleSessionLogging(isCompleted: false, status: 'interrupted'));
+
+    _timer?.cancel();
+    _timer = null;
+    _targetTime = null;
+    _sessionStartTime = null;
+
+    final settingsAsync = ref.read(settingsNotifierProvider);
+    final settings = settingsAsync.valueOrNull;
+    final isTesting = settings?.selectedPreset == TimerPreset.testing;
+
+    final focusDurationSeconds = isTesting
+        ? 30
+        : (settings?.focusDuration ?? AppConstants.defaultFocusDuration) * 60;
+
+    state = TimerState.initial().copyWith(
+      totalSeconds: focusDurationSeconds,
+      remainingSeconds: focusDurationSeconds,
+      completedCycles: 0,
+      totalSessionsCompleted: 0,
     );
 
     _stopAuxiliaryServices();
@@ -251,14 +301,19 @@ class TimerNotifier extends _$TimerNotifier {
       if (remaining != state.remainingSeconds) {
         state = state.copyWith(remainingSeconds: remaining);
 
-        // Update foreground service every 5 seconds or when remaining is small
-        if (remaining % 5 == 0 || remaining <= 5) {
+        // Throttle foreground service updates to reduce battery drain
+        // Update every 5 seconds, at :00, and when timer is paused
+        final shouldUpdate = remaining <= 10 ||
+            (remaining % 5 == 0 && remaining != _lastForegroundUpdateSeconds);
+
+        if (shouldUpdate && state.status == TimerStatus.running) {
           final String phaseText = state.phase.name.toUpperCase();
           ref.read(foregroundServiceProvider).startService(
                 phaseText,
                 remaining.toMMSS(),
-                isPaused: state.status == TimerStatus.paused,
+                isPaused: false,
               );
+          _lastForegroundUpdateSeconds = remaining;
         }
       }
       return;
@@ -290,6 +345,7 @@ class TimerNotifier extends _$TimerNotifier {
 
     final db = ref.read(appDatabaseProvider);
     try {
+      final activeTask = ref.read(activeTaskProvider);
       await db.into(db.sessions).insert(
             SessionsCompanion.insert(
               startTime: _sessionStartTime!,
@@ -297,6 +353,7 @@ class TimerNotifier extends _$TimerNotifier {
               durationSeconds: actualDurationSeconds,
               phaseType: state.phase.name,
               status: status,
+              taskId: Value(activeTask?.id),
             ),
           );
     } catch (e) {

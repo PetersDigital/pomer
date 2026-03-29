@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:file_saver/file_saver.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:csv/csv.dart';
+import 'package:pomer/core/providers/database_provider.dart';
 import 'package:pomer/features/statistics/providers/date_range_provider.dart';
 import 'package:pomer/features/statistics/providers/statistics_provider.dart';
 
@@ -17,7 +18,10 @@ class CsvExportService {
   CsvExportService(this._ref);
 
   Future<void> exportSessions() async {
-    final sessions = await _ref.read(sessionsByDateRangeProvider.future);
+    final db = _ref.read(appDatabaseProvider);
+    final queryRows = await _ref.read(
+      rawSessionsQueryProvider(requireTaskJoin: true).future,
+    );
     final dateRange = _ref.read(dateRangeNotifierProvider);
 
     final List<List<dynamic>> rows = [];
@@ -30,9 +34,14 @@ class CsvExportService {
       'Phase Type',
       'Status',
       'Task ID',
+      'Task Title',
+      'Task Tag',
     ]);
 
-    for (final session in sessions) {
+    for (final row in queryRows) {
+      final session = row.readTable(db.sessions);
+      final task = row.readTableOrNull(db.tasks);
+
       rows.add([
         session.id,
         session.startTime.toIso8601String(),
@@ -41,6 +50,8 @@ class CsvExportService {
         session.phaseType,
         session.status,
         session.taskId ?? '',
+        task?.title ?? '',
+        task?.tag ?? '',
       ]);
     }
 

@@ -7,8 +7,8 @@ void main() {
       expect(AppConstants.appName, 'Pomer');
     });
 
-  test('AppConstants appVersion is 0.5.0', () {
-    expect(AppConstants.appVersion, '0.5.0');
+    test('AppConstants appVersion is 0.5.0', () {
+      expect(AppConstants.appVersion, '0.5.0');
     });
 
     test('developer is Dencel K Babu', () {

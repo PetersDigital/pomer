@@ -6,8 +6,10 @@ import 'package:pomer/features/timer/widgets/phase_utils.dart';
 import 'package:pomer/features/timer/widgets/timer_controls.dart';
 import 'package:pomer/features/timer/widgets/timer_display.dart';
 import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
+import 'package:pomer/core/providers/active_task_provider.dart';
+import 'package:pomer/core/providers/task_list_provider.dart';
 
-/// Full Pomodoro timer screen — v0.4.0.
+/// Full Pomodoro timer screen.
 class TimerScreen extends ConsumerWidget {
   const TimerScreen({super.key});
 
@@ -15,6 +17,9 @@ class TimerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final timerState = ref.watch(timerNotifierProvider);
     final audioPrefsAsync = ref.watch(audioPreferencesNotifierProvider);
+    final activeTask = ref.watch(activeTaskProvider);
+    final tasksAsync = ref.watch(taskListProvider);
+
     final colorScheme = Theme.of(context).colorScheme;
     final color = phaseColor(timerState.phase, colorScheme);
 
@@ -111,6 +116,50 @@ class TimerScreen extends ConsumerWidget {
                 const Spacer(),
                 const TimerDisplay(),
                 const Spacer(),
+                tasksAsync.when(
+                  data: (tasks) {
+                    final uncompletedTasks =
+                        tasks.where((t) => !t.isCompleted).toList();
+                    if (uncompletedTasks.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0),
+                      child: DropdownMenu<String>(
+                        width: 250,
+                        initialSelection: activeTask?.id,
+                        label: const Text('Active Task'),
+                        onSelected: (String? taskId) {
+                          if (taskId == null || taskId.isEmpty) {
+                            ref
+                                .read(activeTaskProvider.notifier)
+                                .clearActiveTask();
+                          } else {
+                            final selectedTask = uncompletedTasks
+                                .firstWhere((t) => t.id == taskId);
+                            ref
+                                .read(activeTaskProvider.notifier)
+                                .setActiveTask(selectedTask);
+                          }
+                        },
+                        dropdownMenuEntries: [
+                          const DropdownMenuEntry<String>(
+                            value: '',
+                            label: 'None',
+                          ),
+                          ...uncompletedTasks.map((t) {
+                            return DropdownMenuEntry<String>(
+                              value: t.id,
+                              label: t.title,
+                            );
+                          }),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
                 const TimerControls(),
                 const SizedBox(height: 16),
               ],

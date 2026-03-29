@@ -29,7 +29,8 @@ class DateRangeNotifier extends _$DateRangeNotifier {
     }
 
     // Normalize to full-day range, matching preset behavior
-    final normalizedStart = DateTime(finalStart.year, finalStart.month, finalStart.day);
+    final normalizedStart =
+        DateTime(finalStart.year, finalStart.month, finalStart.day);
     final normalizedEnd = DateTime(finalEnd.year, finalEnd.month, finalEnd.day)
         .add(const Duration(days: 1))
         .subtract(const Duration(microseconds: 1));

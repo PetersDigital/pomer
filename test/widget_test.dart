@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pomer/app.dart';
 
 void main() {
-  testWidgets('App starts and shows bottom navigation with 3 items',
+  testWidgets('App starts and shows bottom navigation with 4 items',
       (tester) async {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
@@ -14,10 +14,10 @@ void main() {
     final destinations = tester.widgetList<NavigationDestination>(
       find.byType(NavigationDestination),
     );
-    expect(destinations.length, 3);
+    expect(destinations.length, 4);
   });
 
-  testWidgets('NavigationBar shows Timer, Stats, and Settings labels',
+  testWidgets('NavigationBar shows Timer, Tasks, Stats, and Settings labels',
       (tester) async {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
@@ -25,6 +25,10 @@ void main() {
     final navBar = find.byType(NavigationBar);
     expect(
       find.descendant(of: navBar, matching: find.text('Timer')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: navBar, matching: find.text('Tasks')),
       findsOneWidget,
     );
     expect(
@@ -39,7 +43,9 @@ void main() {
 
   testWidgets('Timer screen is shown by default', (tester) async {
     await tester.pumpWidget(const ProviderScope(child: App()));
-    await tester.pumpAndSettle();
+
+    // Let StreamProviders emit and settle
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
 
     expect(find.text('25:00'), findsOneWidget);
   });
