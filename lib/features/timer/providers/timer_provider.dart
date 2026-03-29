@@ -13,6 +13,7 @@ import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
 import 'package:pomer/core/providers/database_provider.dart';
 import 'package:pomer/core/providers/power_management_provider.dart';
+import 'package:pomer/core/logging/timer_diagnostics.dart';
 import 'package:pomer/database/database.dart';
 import 'package:pomer/core/providers/active_task_provider.dart';
 import 'package:drift/drift.dart' show Value;
@@ -25,6 +26,8 @@ class TimerNotifier extends _$TimerNotifier {
   DateTime? _targetTime;
   DateTime? _sessionStartTime;
   int _lastForegroundUpdateSeconds = -1;
+  int _foregroundUpdateCount = 0;
+  int _timerTickCount = 0;
 
   @override
   TimerState build() {
@@ -34,13 +37,16 @@ class TimerNotifier extends _$TimerNotifier {
 
     ref.onDispose(() {
       _timer?.cancel();
+      timerDiagnostics.logForegroundServiceStop();
       unawaited(audioService.stopAmbient());
       unawaited(foregroundService.stopService());
       unawaited(notificationService.cancelAllNotifications());
+      timerDiagnostics.log('TimerNotifier disposed');
     });
 
     // Listen to background actions
     ref.read(foregroundServiceProvider).registerActionCallback((action) {
+      timerDiagnostics.logTimerEvent('foreground_action', data: {'action': action});
       if (action == 'pause') {
         pause();
       } else if (action == 'resume') {
