@@ -23,6 +23,7 @@ class TimerNotifier extends _$TimerNotifier {
   Timer? _timer;
   DateTime? _targetTime;
   DateTime? _sessionStartTime;
+  int _lastForegroundUpdateSeconds = -1;
 
   @override
   TimerState build() {
@@ -254,14 +255,19 @@ class TimerNotifier extends _$TimerNotifier {
       if (remaining != state.remainingSeconds) {
         state = state.copyWith(remainingSeconds: remaining);
 
-        // Update foreground service every 5 seconds or when remaining is small
-        if (remaining % 5 == 0 || remaining <= 5) {
+        // Throttle foreground service updates to reduce battery drain
+        // Update every 5 seconds, at :00, and when timer is paused
+        final shouldUpdate = remaining <= 10 ||
+            (remaining % 5 == 0 && remaining != _lastForegroundUpdateSeconds);
+
+        if (shouldUpdate && state.status == TimerStatus.running) {
           final String phaseText = state.phase.name.toUpperCase();
           ref.read(foregroundServiceProvider).startService(
                 phaseText,
                 remaining.toMMSS(),
-                isPaused: state.status == TimerStatus.paused,
+                isPaused: false,
               );
+          _lastForegroundUpdateSeconds = remaining;
         }
       }
       return;
