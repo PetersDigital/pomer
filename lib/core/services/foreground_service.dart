@@ -67,7 +67,6 @@ class ForegroundService {
         stopWithTask: true,
         allowWakeLock: false,
         allowWifiLock: false,
-        ignoreBatteryOptimization: false,
       ),
     );
   }
