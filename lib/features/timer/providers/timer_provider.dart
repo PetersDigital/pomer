@@ -12,6 +12,7 @@ import 'package:pomer/core/services/foreground_service.dart';
 import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
 import 'package:pomer/core/utils/time_utils.dart';
 import 'package:pomer/core/providers/database_provider.dart';
+import 'package:pomer/core/providers/power_management_provider.dart';
 import 'package:pomer/database/database.dart';
 import 'package:pomer/core/providers/active_task_provider.dart';
 import 'package:drift/drift.dart' show Value;
