@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'features/settings/providers/settings_provider.dart';
 import 'features/settings/screens/settings_screen.dart';
@@ -54,7 +55,7 @@ class App extends ConsumerWidget {
     });
 
     return MaterialApp.router(
-      title: 'Pomer',
+      title: AppConstants.appName,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: settingsAsync.valueOrNull?.themeMode ?? ThemeMode.system,
