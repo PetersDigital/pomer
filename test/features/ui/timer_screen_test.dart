@@ -16,10 +16,13 @@ import '../../helpers/mock_services.mocks.dart';
 import 'package:flutter/services.dart';
 
 void main() {
+  const permissionChannel =
+      MethodChannel('flutter.baseflow.com/permissions/methods');
+
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('flutter.baseflow.com/permissions/methods'),
+      permissionChannel,
       (MethodCall methodCall) async {
         if (methodCall.method == 'checkPermissionStatus') {
           return 1; // 1 = granted in permission_handler
@@ -29,17 +32,25 @@ void main() {
     );
   });
 
-  testWidgets('TimerScreen displays active task and toggles play/pause', (tester) async {
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(permissionChannel, null);
+  });
+
+  testWidgets('TimerScreen displays active task and toggles play/pause',
+      (tester) async {
     final mockAudioService = MockAudioService();
     final mockNotificationService = MockNotificationService();
     final mockForegroundService = MockForegroundService();
+
+    final now = DateTime(2026, 1, 1, 12, 0, 0);
 
     final testTask = Task(
       id: 'mock-id',
       title: 'Mock Active Task',
       tag: 'Mock Tag',
       isCompleted: false,
-      createdAt: DateTime.now(),
+      createdAt: now,
     );
 
     final container = createTestContainer(
