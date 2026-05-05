@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pomer/app.dart';
 
 void main() {
-  testWidgets('App starts and shows bottom navigation with 4 items',
+  testWidgets('App starts and shows bottom navigation with 5 items',
       (tester) async {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
@@ -14,10 +14,10 @@ void main() {
     final destinations = tester.widgetList<NavigationDestination>(
       find.byType(NavigationDestination),
     );
-    expect(destinations.length, 4);
+    expect(destinations.length, 5);
   });
 
-  testWidgets('NavigationBar shows Timer, Tasks, Stats, and Settings labels',
+  testWidgets('NavigationBar shows Timer, Tasks, Garden, Stats, and Settings labels',
       (tester) async {
     await tester.pumpWidget(const ProviderScope(child: App()));
     await tester.pumpAndSettle();
@@ -29,6 +29,10 @@ void main() {
     );
     expect(
       find.descendant(of: navBar, matching: find.text('Tasks')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: navBar, matching: find.text('Garden')),
       findsOneWidget,
     );
     expect(

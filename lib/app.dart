@@ -11,6 +11,7 @@ import 'features/settings/screens/settings_screen.dart';
 import 'features/statistics/screens/statistics_screen.dart';
 import 'features/tasks/screens/tasks_screen.dart';
 import 'features/timer/screens/timer_screen.dart';
+import 'features/gamification/screens/garden_screen.dart';
 
 final _router = GoRouter(
   routes: [
@@ -24,6 +25,10 @@ final _router = GoRouter(
         GoRoute(
           path: '/tasks',
           builder: (context, state) => const TasksScreen(),
+        ),
+        GoRoute(
+          path: '/garden',
+          builder: (context, state) => const GardenScreen(),
         ),
         GoRoute(
           path: '/stats',
@@ -73,8 +78,9 @@ class AppShell extends StatelessWidget {
   int _selectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/tasks')) return 1;
-    if (location.startsWith('/stats')) return 2;
-    if (location.startsWith('/settings')) return 3;
+    if (location.startsWith('/garden')) return 2;
+    if (location.startsWith('/stats')) return 3;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 
@@ -84,9 +90,12 @@ class AppShell extends StatelessWidget {
         context.go('/tasks');
         return;
       case 2:
-        context.go('/stats');
+        context.go('/garden');
         return;
       case 3:
+        context.go('/stats');
+        return;
+      case 4:
         context.go('/settings');
         return;
       default:
@@ -111,6 +120,10 @@ class AppShell extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.check_circle_outline),
             label: 'Tasks',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.local_florist_outlined),
+            label: 'Garden',
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),
