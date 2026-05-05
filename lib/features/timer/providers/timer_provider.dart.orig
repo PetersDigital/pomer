@@ -345,8 +345,6 @@ class TimerNotifier extends _$TimerNotifier {
     }
 
     final db = ref.read(appDatabaseProvider);
-    final currentPhase = state.phase;
-
     try {
       final activeTask = ref.read(activeTaskProvider);
       await db.into(db.sessions).insert(
@@ -360,7 +358,7 @@ class TimerNotifier extends _$TimerNotifier {
             ),
           );
 
-      if (currentPhase == TimerPhase.focus) {
+      if (state.phase == TimerPhase.focus) {
         final gardenRepo = ref.read(gardenRepositoryProvider);
         String targetTier;
 

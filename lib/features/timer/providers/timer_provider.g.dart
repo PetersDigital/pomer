@@ -6,7 +6,7 @@ part of 'timer_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$timerNotifierHash() => r'233bd0439af4a3df27146eae7b7dbf3cbdae11f3';
+String _$timerNotifierHash() => r'3fa3b06d772b97330567904693502e19200bc036';
 
 /// Timer state management provider using Riverpod.
 ///
