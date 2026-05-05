@@ -59,6 +59,7 @@ class AppDatabase extends _$AppDatabase {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
+        await _seedPlantCatalog();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -67,9 +68,43 @@ class AppDatabase extends _$AppDatabase {
         if (from <= 2) {
           await m.createTable(plantCatalog);
           await m.createTable(userGarden);
+          await _seedPlantCatalog();
         }
       },
     );
+  }
+
+  Future<void> _seedPlantCatalog() async {
+    final count = await customSelect('SELECT count(*) FROM plant_catalog')
+        .getSingle()
+        .then((row) => row.read<int>('count(*)'));
+
+    if (count == 0) {
+      await batch((batch) {
+        batch.insertAll(plantCatalog, [
+          PlantCatalogCompanion.insert(
+            emoji: '🌱',
+            name: 'Sprout',
+            tier: 'quick',
+          ),
+          PlantCatalogCompanion.insert(
+            emoji: '🌷',
+            name: 'Flower',
+            tier: 'standard',
+          ),
+          PlantCatalogCompanion.insert(
+            emoji: '🌳',
+            name: 'Tree',
+            tier: 'deep',
+          ),
+          PlantCatalogCompanion.insert(
+            emoji: '🥀',
+            name: 'Withered',
+            tier: 'failed',
+          ),
+        ]);
+      });
+    }
   }
 
   Future<int> clearAllSessions() => delete(sessions).go();
