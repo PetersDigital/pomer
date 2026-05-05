@@ -15,13 +15,13 @@ class TimerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timerState = ref.watch(timerNotifierProvider);
+    final timerPhase = ref.watch(timerNotifierProvider.select((state) => state.phase));
     final audioPrefsAsync = ref.watch(audioPreferencesNotifierProvider);
     final activeTask = ref.watch(activeTaskProvider);
     final tasksAsync = ref.watch(taskListProvider);
 
     final colorScheme = Theme.of(context).colorScheme;
-    final color = phaseColor(timerState.phase, colorScheme);
+    final color = phaseColor(timerPhase, colorScheme);
 
     return SafeArea(
       child: Center(
@@ -32,7 +32,7 @@ class TimerScreen extends ConsumerWidget {
             child: Column(
               children: [
                 Chip(
-                  label: Text(timerState.phase.label),
+                  label: Text(timerPhase.label),
                   backgroundColor: color.withAlpha(40),
                   labelStyle: TextStyle(
                     color: color,

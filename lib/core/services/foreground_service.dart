@@ -62,7 +62,7 @@ class ForegroundService {
         playSound: false,
       ),
       foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.repeat(1000),
+        eventAction: ForegroundTaskEventAction.nothing(),
         autoRunOnBoot: false,
         stopWithTask: true,
         allowWakeLock: false,
