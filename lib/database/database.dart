@@ -28,14 +28,31 @@ class Tasks extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Sessions, Tasks])
+@DataClassName('PlantCatalogItem')
+class PlantCatalog extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get emoji => text()();
+  TextColumn get name => text()();
+  TextColumn get tier => text()(); // quick, standard, deep, failed
+}
+
+@DataClassName('UserGardenItem')
+class UserGarden extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get plantId => integer().references(PlantCatalog, #id)();
+  DateTimeColumn get earnedAt =>
+      dateTime().clientDefault(() => DateTime.now())();
+  IntColumn get durationMinutes => integer()();
+}
+
+@DriftDatabase(tables: [Sessions, Tasks, PlantCatalog, UserGarden])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(connection.openConnection());
 
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -46,6 +63,10 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
           await m.createTable(tasks);
+        }
+        if (from <= 2) {
+          await m.createTable(plantCatalog);
+          await m.createTable(userGarden);
         }
       },
     );

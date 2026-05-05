@@ -685,16 +685,540 @@ class TasksCompanion extends UpdateCompanion<Task> {
   }
 }
 
+class $PlantCatalogTable extends PlantCatalog
+    with TableInfo<$PlantCatalogTable, PlantCatalogItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlantCatalogTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _emojiMeta = const VerificationMeta('emoji');
+  @override
+  late final GeneratedColumn<String> emoji = GeneratedColumn<String>(
+      'emoji', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _tierMeta = const VerificationMeta('tier');
+  @override
+  late final GeneratedColumn<String> tier = GeneratedColumn<String>(
+      'tier', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, emoji, name, tier];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'plant_catalog';
+  @override
+  VerificationContext validateIntegrity(Insertable<PlantCatalogItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('emoji')) {
+      context.handle(
+          _emojiMeta, emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta));
+    } else if (isInserting) {
+      context.missing(_emojiMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('tier')) {
+      context.handle(
+          _tierMeta, tier.isAcceptableOrUnknown(data['tier']!, _tierMeta));
+    } else if (isInserting) {
+      context.missing(_tierMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PlantCatalogItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlantCatalogItem(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      emoji: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}emoji'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      tier: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tier'])!,
+    );
+  }
+
+  @override
+  $PlantCatalogTable createAlias(String alias) {
+    return $PlantCatalogTable(attachedDatabase, alias);
+  }
+}
+
+class PlantCatalogItem extends DataClass
+    implements Insertable<PlantCatalogItem> {
+  final int id;
+  final String emoji;
+  final String name;
+  final String tier;
+  const PlantCatalogItem(
+      {required this.id,
+      required this.emoji,
+      required this.name,
+      required this.tier});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['emoji'] = Variable<String>(emoji);
+    map['name'] = Variable<String>(name);
+    map['tier'] = Variable<String>(tier);
+    return map;
+  }
+
+  PlantCatalogCompanion toCompanion(bool nullToAbsent) {
+    return PlantCatalogCompanion(
+      id: Value(id),
+      emoji: Value(emoji),
+      name: Value(name),
+      tier: Value(tier),
+    );
+  }
+
+  factory PlantCatalogItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlantCatalogItem(
+      id: serializer.fromJson<int>(json['id']),
+      emoji: serializer.fromJson<String>(json['emoji']),
+      name: serializer.fromJson<String>(json['name']),
+      tier: serializer.fromJson<String>(json['tier']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'emoji': serializer.toJson<String>(emoji),
+      'name': serializer.toJson<String>(name),
+      'tier': serializer.toJson<String>(tier),
+    };
+  }
+
+  PlantCatalogItem copyWith(
+          {int? id, String? emoji, String? name, String? tier}) =>
+      PlantCatalogItem(
+        id: id ?? this.id,
+        emoji: emoji ?? this.emoji,
+        name: name ?? this.name,
+        tier: tier ?? this.tier,
+      );
+  PlantCatalogItem copyWithCompanion(PlantCatalogCompanion data) {
+    return PlantCatalogItem(
+      id: data.id.present ? data.id.value : this.id,
+      emoji: data.emoji.present ? data.emoji.value : this.emoji,
+      name: data.name.present ? data.name.value : this.name,
+      tier: data.tier.present ? data.tier.value : this.tier,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlantCatalogItem(')
+          ..write('id: $id, ')
+          ..write('emoji: $emoji, ')
+          ..write('name: $name, ')
+          ..write('tier: $tier')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, emoji, name, tier);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlantCatalogItem &&
+          other.id == this.id &&
+          other.emoji == this.emoji &&
+          other.name == this.name &&
+          other.tier == this.tier);
+}
+
+class PlantCatalogCompanion extends UpdateCompanion<PlantCatalogItem> {
+  final Value<int> id;
+  final Value<String> emoji;
+  final Value<String> name;
+  final Value<String> tier;
+  const PlantCatalogCompanion({
+    this.id = const Value.absent(),
+    this.emoji = const Value.absent(),
+    this.name = const Value.absent(),
+    this.tier = const Value.absent(),
+  });
+  PlantCatalogCompanion.insert({
+    this.id = const Value.absent(),
+    required String emoji,
+    required String name,
+    required String tier,
+  })  : emoji = Value(emoji),
+        name = Value(name),
+        tier = Value(tier);
+  static Insertable<PlantCatalogItem> custom({
+    Expression<int>? id,
+    Expression<String>? emoji,
+    Expression<String>? name,
+    Expression<String>? tier,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (emoji != null) 'emoji': emoji,
+      if (name != null) 'name': name,
+      if (tier != null) 'tier': tier,
+    });
+  }
+
+  PlantCatalogCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? emoji,
+      Value<String>? name,
+      Value<String>? tier}) {
+    return PlantCatalogCompanion(
+      id: id ?? this.id,
+      emoji: emoji ?? this.emoji,
+      name: name ?? this.name,
+      tier: tier ?? this.tier,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (emoji.present) {
+      map['emoji'] = Variable<String>(emoji.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (tier.present) {
+      map['tier'] = Variable<String>(tier.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlantCatalogCompanion(')
+          ..write('id: $id, ')
+          ..write('emoji: $emoji, ')
+          ..write('name: $name, ')
+          ..write('tier: $tier')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserGardenTable extends UserGarden
+    with TableInfo<$UserGardenTable, UserGardenItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserGardenTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _plantIdMeta =
+      const VerificationMeta('plantId');
+  @override
+  late final GeneratedColumn<int> plantId = GeneratedColumn<int>(
+      'plant_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES plant_catalog (id)'));
+  static const VerificationMeta _earnedAtMeta =
+      const VerificationMeta('earnedAt');
+  @override
+  late final GeneratedColumn<DateTime> earnedAt = GeneratedColumn<DateTime>(
+      'earned_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      clientDefault: () => DateTime.now());
+  static const VerificationMeta _durationMinutesMeta =
+      const VerificationMeta('durationMinutes');
+  @override
+  late final GeneratedColumn<int> durationMinutes = GeneratedColumn<int>(
+      'duration_minutes', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, plantId, earnedAt, durationMinutes];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_garden';
+  @override
+  VerificationContext validateIntegrity(Insertable<UserGardenItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('plant_id')) {
+      context.handle(_plantIdMeta,
+          plantId.isAcceptableOrUnknown(data['plant_id']!, _plantIdMeta));
+    } else if (isInserting) {
+      context.missing(_plantIdMeta);
+    }
+    if (data.containsKey('earned_at')) {
+      context.handle(_earnedAtMeta,
+          earnedAt.isAcceptableOrUnknown(data['earned_at']!, _earnedAtMeta));
+    }
+    if (data.containsKey('duration_minutes')) {
+      context.handle(
+          _durationMinutesMeta,
+          durationMinutes.isAcceptableOrUnknown(
+              data['duration_minutes']!, _durationMinutesMeta));
+    } else if (isInserting) {
+      context.missing(_durationMinutesMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserGardenItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserGardenItem(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      plantId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}plant_id'])!,
+      earnedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}earned_at'])!,
+      durationMinutes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}duration_minutes'])!,
+    );
+  }
+
+  @override
+  $UserGardenTable createAlias(String alias) {
+    return $UserGardenTable(attachedDatabase, alias);
+  }
+}
+
+class UserGardenItem extends DataClass implements Insertable<UserGardenItem> {
+  final int id;
+  final int plantId;
+  final DateTime earnedAt;
+  final int durationMinutes;
+  const UserGardenItem(
+      {required this.id,
+      required this.plantId,
+      required this.earnedAt,
+      required this.durationMinutes});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['plant_id'] = Variable<int>(plantId);
+    map['earned_at'] = Variable<DateTime>(earnedAt);
+    map['duration_minutes'] = Variable<int>(durationMinutes);
+    return map;
+  }
+
+  UserGardenCompanion toCompanion(bool nullToAbsent) {
+    return UserGardenCompanion(
+      id: Value(id),
+      plantId: Value(plantId),
+      earnedAt: Value(earnedAt),
+      durationMinutes: Value(durationMinutes),
+    );
+  }
+
+  factory UserGardenItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserGardenItem(
+      id: serializer.fromJson<int>(json['id']),
+      plantId: serializer.fromJson<int>(json['plantId']),
+      earnedAt: serializer.fromJson<DateTime>(json['earnedAt']),
+      durationMinutes: serializer.fromJson<int>(json['durationMinutes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'plantId': serializer.toJson<int>(plantId),
+      'earnedAt': serializer.toJson<DateTime>(earnedAt),
+      'durationMinutes': serializer.toJson<int>(durationMinutes),
+    };
+  }
+
+  UserGardenItem copyWith(
+          {int? id, int? plantId, DateTime? earnedAt, int? durationMinutes}) =>
+      UserGardenItem(
+        id: id ?? this.id,
+        plantId: plantId ?? this.plantId,
+        earnedAt: earnedAt ?? this.earnedAt,
+        durationMinutes: durationMinutes ?? this.durationMinutes,
+      );
+  UserGardenItem copyWithCompanion(UserGardenCompanion data) {
+    return UserGardenItem(
+      id: data.id.present ? data.id.value : this.id,
+      plantId: data.plantId.present ? data.plantId.value : this.plantId,
+      earnedAt: data.earnedAt.present ? data.earnedAt.value : this.earnedAt,
+      durationMinutes: data.durationMinutes.present
+          ? data.durationMinutes.value
+          : this.durationMinutes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserGardenItem(')
+          ..write('id: $id, ')
+          ..write('plantId: $plantId, ')
+          ..write('earnedAt: $earnedAt, ')
+          ..write('durationMinutes: $durationMinutes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, plantId, earnedAt, durationMinutes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserGardenItem &&
+          other.id == this.id &&
+          other.plantId == this.plantId &&
+          other.earnedAt == this.earnedAt &&
+          other.durationMinutes == this.durationMinutes);
+}
+
+class UserGardenCompanion extends UpdateCompanion<UserGardenItem> {
+  final Value<int> id;
+  final Value<int> plantId;
+  final Value<DateTime> earnedAt;
+  final Value<int> durationMinutes;
+  const UserGardenCompanion({
+    this.id = const Value.absent(),
+    this.plantId = const Value.absent(),
+    this.earnedAt = const Value.absent(),
+    this.durationMinutes = const Value.absent(),
+  });
+  UserGardenCompanion.insert({
+    this.id = const Value.absent(),
+    required int plantId,
+    this.earnedAt = const Value.absent(),
+    required int durationMinutes,
+  })  : plantId = Value(plantId),
+        durationMinutes = Value(durationMinutes);
+  static Insertable<UserGardenItem> custom({
+    Expression<int>? id,
+    Expression<int>? plantId,
+    Expression<DateTime>? earnedAt,
+    Expression<int>? durationMinutes,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (plantId != null) 'plant_id': plantId,
+      if (earnedAt != null) 'earned_at': earnedAt,
+      if (durationMinutes != null) 'duration_minutes': durationMinutes,
+    });
+  }
+
+  UserGardenCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? plantId,
+      Value<DateTime>? earnedAt,
+      Value<int>? durationMinutes}) {
+    return UserGardenCompanion(
+      id: id ?? this.id,
+      plantId: plantId ?? this.plantId,
+      earnedAt: earnedAt ?? this.earnedAt,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (plantId.present) {
+      map['plant_id'] = Variable<int>(plantId.value);
+    }
+    if (earnedAt.present) {
+      map['earned_at'] = Variable<DateTime>(earnedAt.value);
+    }
+    if (durationMinutes.present) {
+      map['duration_minutes'] = Variable<int>(durationMinutes.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserGardenCompanion(')
+          ..write('id: $id, ')
+          ..write('plantId: $plantId, ')
+          ..write('earnedAt: $earnedAt, ')
+          ..write('durationMinutes: $durationMinutes')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $SessionsTable sessions = $SessionsTable(this);
   late final $TasksTable tasks = $TasksTable(this);
+  late final $PlantCatalogTable plantCatalog = $PlantCatalogTable(this);
+  late final $UserGardenTable userGarden = $UserGardenTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [sessions, tasks];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [sessions, tasks, plantCatalog, userGarden];
 }
 
 typedef $$SessionsTableCreateCompanionBuilder = SessionsCompanion Function({
@@ -1052,6 +1576,494 @@ typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
     (Task, BaseReferences<_$AppDatabase, $TasksTable, Task>),
     Task,
     PrefetchHooks Function()>;
+typedef $$PlantCatalogTableCreateCompanionBuilder = PlantCatalogCompanion
+    Function({
+  Value<int> id,
+  required String emoji,
+  required String name,
+  required String tier,
+});
+typedef $$PlantCatalogTableUpdateCompanionBuilder = PlantCatalogCompanion
+    Function({
+  Value<int> id,
+  Value<String> emoji,
+  Value<String> name,
+  Value<String> tier,
+});
+
+final class $$PlantCatalogTableReferences extends BaseReferences<_$AppDatabase,
+    $PlantCatalogTable, PlantCatalogItem> {
+  $$PlantCatalogTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$UserGardenTable, List<UserGardenItem>>
+      _userGardenRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.userGarden,
+          aliasName:
+              $_aliasNameGenerator(db.plantCatalog.id, db.userGarden.plantId));
+
+  $$UserGardenTableProcessedTableManager get userGardenRefs {
+    final manager = $$UserGardenTableTableManager($_db, $_db.userGarden)
+        .filter((f) => f.plantId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_userGardenRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$PlantCatalogTableFilterComposer
+    extends Composer<_$AppDatabase, $PlantCatalogTable> {
+  $$PlantCatalogTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get emoji => $composableBuilder(
+      column: $table.emoji, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get tier => $composableBuilder(
+      column: $table.tier, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> userGardenRefs(
+      Expression<bool> Function($$UserGardenTableFilterComposer f) f) {
+    final $$UserGardenTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.userGarden,
+        getReferencedColumn: (t) => t.plantId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGardenTableFilterComposer(
+              $db: $db,
+              $table: $db.userGarden,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$PlantCatalogTableOrderingComposer
+    extends Composer<_$AppDatabase, $PlantCatalogTable> {
+  $$PlantCatalogTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get emoji => $composableBuilder(
+      column: $table.emoji, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tier => $composableBuilder(
+      column: $table.tier, builder: (column) => ColumnOrderings(column));
+}
+
+class $$PlantCatalogTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PlantCatalogTable> {
+  $$PlantCatalogTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get emoji =>
+      $composableBuilder(column: $table.emoji, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get tier =>
+      $composableBuilder(column: $table.tier, builder: (column) => column);
+
+  Expression<T> userGardenRefs<T extends Object>(
+      Expression<T> Function($$UserGardenTableAnnotationComposer a) f) {
+    final $$UserGardenTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.userGarden,
+        getReferencedColumn: (t) => t.plantId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UserGardenTableAnnotationComposer(
+              $db: $db,
+              $table: $db.userGarden,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$PlantCatalogTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $PlantCatalogTable,
+    PlantCatalogItem,
+    $$PlantCatalogTableFilterComposer,
+    $$PlantCatalogTableOrderingComposer,
+    $$PlantCatalogTableAnnotationComposer,
+    $$PlantCatalogTableCreateCompanionBuilder,
+    $$PlantCatalogTableUpdateCompanionBuilder,
+    (PlantCatalogItem, $$PlantCatalogTableReferences),
+    PlantCatalogItem,
+    PrefetchHooks Function({bool userGardenRefs})> {
+  $$PlantCatalogTableTableManager(_$AppDatabase db, $PlantCatalogTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PlantCatalogTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PlantCatalogTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PlantCatalogTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> emoji = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> tier = const Value.absent(),
+          }) =>
+              PlantCatalogCompanion(
+            id: id,
+            emoji: emoji,
+            name: name,
+            tier: tier,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String emoji,
+            required String name,
+            required String tier,
+          }) =>
+              PlantCatalogCompanion.insert(
+            id: id,
+            emoji: emoji,
+            name: name,
+            tier: tier,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$PlantCatalogTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({userGardenRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (userGardenRefs) db.userGarden],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (userGardenRefs)
+                    await $_getPrefetchedData<PlantCatalogItem,
+                            $PlantCatalogTable, UserGardenItem>(
+                        currentTable: table,
+                        referencedTable: $$PlantCatalogTableReferences
+                            ._userGardenRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$PlantCatalogTableReferences(db, table, p0)
+                                .userGardenRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.plantId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$PlantCatalogTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $PlantCatalogTable,
+    PlantCatalogItem,
+    $$PlantCatalogTableFilterComposer,
+    $$PlantCatalogTableOrderingComposer,
+    $$PlantCatalogTableAnnotationComposer,
+    $$PlantCatalogTableCreateCompanionBuilder,
+    $$PlantCatalogTableUpdateCompanionBuilder,
+    (PlantCatalogItem, $$PlantCatalogTableReferences),
+    PlantCatalogItem,
+    PrefetchHooks Function({bool userGardenRefs})>;
+typedef $$UserGardenTableCreateCompanionBuilder = UserGardenCompanion Function({
+  Value<int> id,
+  required int plantId,
+  Value<DateTime> earnedAt,
+  required int durationMinutes,
+});
+typedef $$UserGardenTableUpdateCompanionBuilder = UserGardenCompanion Function({
+  Value<int> id,
+  Value<int> plantId,
+  Value<DateTime> earnedAt,
+  Value<int> durationMinutes,
+});
+
+final class $$UserGardenTableReferences
+    extends BaseReferences<_$AppDatabase, $UserGardenTable, UserGardenItem> {
+  $$UserGardenTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $PlantCatalogTable _plantIdTable(_$AppDatabase db) =>
+      db.plantCatalog.createAlias(
+          $_aliasNameGenerator(db.userGarden.plantId, db.plantCatalog.id));
+
+  $$PlantCatalogTableProcessedTableManager get plantId {
+    final $_column = $_itemColumn<int>('plant_id')!;
+
+    final manager = $$PlantCatalogTableTableManager($_db, $_db.plantCatalog)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_plantIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$UserGardenTableFilterComposer
+    extends Composer<_$AppDatabase, $UserGardenTable> {
+  $$UserGardenTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get earnedAt => $composableBuilder(
+      column: $table.earnedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get durationMinutes => $composableBuilder(
+      column: $table.durationMinutes,
+      builder: (column) => ColumnFilters(column));
+
+  $$PlantCatalogTableFilterComposer get plantId {
+    final $$PlantCatalogTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.plantId,
+        referencedTable: $db.plantCatalog,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PlantCatalogTableFilterComposer(
+              $db: $db,
+              $table: $db.plantCatalog,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserGardenTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserGardenTable> {
+  $$UserGardenTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get earnedAt => $composableBuilder(
+      column: $table.earnedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get durationMinutes => $composableBuilder(
+      column: $table.durationMinutes,
+      builder: (column) => ColumnOrderings(column));
+
+  $$PlantCatalogTableOrderingComposer get plantId {
+    final $$PlantCatalogTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.plantId,
+        referencedTable: $db.plantCatalog,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PlantCatalogTableOrderingComposer(
+              $db: $db,
+              $table: $db.plantCatalog,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserGardenTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserGardenTable> {
+  $$UserGardenTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get earnedAt =>
+      $composableBuilder(column: $table.earnedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMinutes => $composableBuilder(
+      column: $table.durationMinutes, builder: (column) => column);
+
+  $$PlantCatalogTableAnnotationComposer get plantId {
+    final $$PlantCatalogTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.plantId,
+        referencedTable: $db.plantCatalog,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PlantCatalogTableAnnotationComposer(
+              $db: $db,
+              $table: $db.plantCatalog,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$UserGardenTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $UserGardenTable,
+    UserGardenItem,
+    $$UserGardenTableFilterComposer,
+    $$UserGardenTableOrderingComposer,
+    $$UserGardenTableAnnotationComposer,
+    $$UserGardenTableCreateCompanionBuilder,
+    $$UserGardenTableUpdateCompanionBuilder,
+    (UserGardenItem, $$UserGardenTableReferences),
+    UserGardenItem,
+    PrefetchHooks Function({bool plantId})> {
+  $$UserGardenTableTableManager(_$AppDatabase db, $UserGardenTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserGardenTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserGardenTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserGardenTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> plantId = const Value.absent(),
+            Value<DateTime> earnedAt = const Value.absent(),
+            Value<int> durationMinutes = const Value.absent(),
+          }) =>
+              UserGardenCompanion(
+            id: id,
+            plantId: plantId,
+            earnedAt: earnedAt,
+            durationMinutes: durationMinutes,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int plantId,
+            Value<DateTime> earnedAt = const Value.absent(),
+            required int durationMinutes,
+          }) =>
+              UserGardenCompanion.insert(
+            id: id,
+            plantId: plantId,
+            earnedAt: earnedAt,
+            durationMinutes: durationMinutes,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$UserGardenTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({plantId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (plantId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.plantId,
+                    referencedTable:
+                        $$UserGardenTableReferences._plantIdTable(db),
+                    referencedColumn:
+                        $$UserGardenTableReferences._plantIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$UserGardenTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $UserGardenTable,
+    UserGardenItem,
+    $$UserGardenTableFilterComposer,
+    $$UserGardenTableOrderingComposer,
+    $$UserGardenTableAnnotationComposer,
+    $$UserGardenTableCreateCompanionBuilder,
+    $$UserGardenTableUpdateCompanionBuilder,
+    (UserGardenItem, $$UserGardenTableReferences),
+    UserGardenItem,
+    PrefetchHooks Function({bool plantId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1060,4 +2072,8 @@ class $AppDatabaseManager {
       $$SessionsTableTableManager(_db, _db.sessions);
   $$TasksTableTableManager get tasks =>
       $$TasksTableTableManager(_db, _db.tasks);
+  $$PlantCatalogTableTableManager get plantCatalog =>
+      $$PlantCatalogTableTableManager(_db, _db.plantCatalog);
+  $$UserGardenTableTableManager get userGarden =>
+      $$UserGardenTableTableManager(_db, _db.userGarden);
 }
