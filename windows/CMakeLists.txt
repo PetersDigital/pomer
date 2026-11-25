@@ -20,6 +20,9 @@ set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# Silence MSVC 14.52+ STL1011 error for plugins still using <experimental/coroutine>.
+add_definitions(-D_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
