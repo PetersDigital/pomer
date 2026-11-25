@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pomer/core/providers/database_provider.dart';
 import 'package:pomer/database/database.dart';
 
 class GardenRepository {
@@ -11,11 +13,11 @@ class GardenRepository {
 
   Future<void> insertPlant(int plantId, int durationMinutes) async {
     await _db.into(_db.userGarden).insert(
-      UserGardenCompanion.insert(
-        plantId: plantId,
-        durationMinutes: durationMinutes,
-      ),
-    );
+          UserGardenCompanion.insert(
+            plantId: plantId,
+            durationMinutes: durationMinutes,
+          ),
+        );
   }
 
   Future<PlantCatalogItem?> getPlantCatalogItemByTier(String tier) async {
@@ -29,3 +31,8 @@ class GardenRepository {
     return _db.select(_db.plantCatalog).get();
   }
 }
+
+final gardenRepositoryProvider = Provider.autoDispose<GardenRepository>((ref) {
+  final db = ref.watch(appDatabaseProvider);
+  return GardenRepository(db);
+});

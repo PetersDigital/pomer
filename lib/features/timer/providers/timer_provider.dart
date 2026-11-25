@@ -16,7 +16,7 @@ import 'package:pomer/core/logging/timer_diagnostics.dart';
 import 'package:pomer/database/database.dart';
 import 'package:pomer/core/providers/active_task_provider.dart';
 import 'package:drift/drift.dart' show Value;
-import 'package:pomer/features/gamification/providers/garden_provider.dart';
+import 'package:pomer/core/providers/garden_repository_provider.dart';
 
 part 'timer_provider.g.dart';
 
