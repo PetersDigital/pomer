@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pomer/features/statistics/providers/statistics_provider.dart';
 import 'package:pomer/features/statistics/providers/date_range_provider.dart';
