@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:pomer/core/models/garden_models.dart';
 import 'package:uuid/uuid.dart';
 import 'connection.dart' as connection;
 
@@ -59,7 +60,7 @@ class AppDatabase extends _$AppDatabase {
     return MigrationStrategy(
       onCreate: (Migrator m) async {
         await m.createAll();
-        await _seedPlantCatalog();
+        await ensurePlantCatalogSeeded();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from == 1) {
@@ -68,43 +69,38 @@ class AppDatabase extends _$AppDatabase {
         if (from <= 2) {
           await m.createTable(plantCatalog);
           await m.createTable(userGarden);
-          await _seedPlantCatalog();
+          await ensurePlantCatalogSeeded();
         }
+      },
+      beforeOpen: (details) async {
+        await ensurePlantCatalogSeeded();
       },
     );
   }
 
-  Future<void> _seedPlantCatalog() async {
-    final count = await customSelect('SELECT count(*) FROM plant_catalog')
-        .getSingle()
-        .then((row) => row.read<int>('count(*)'));
+  Future<void> ensurePlantCatalogSeeded() async {
+    final existingRows = await select(plantCatalog).get();
+    final existingTiers = existingRows.map((row) => row.tier).toSet();
+    final missingSpecs = kPlantCatalogSpecs
+        .where((spec) => !existingTiers.contains(spec.tier))
+        .toList();
 
-    if (count == 0) {
-      await batch((batch) {
-        batch.insertAll(plantCatalog, [
-          PlantCatalogCompanion.insert(
-            emoji: '🌱',
-            name: 'Sprout',
-            tier: 'quick',
-          ),
-          PlantCatalogCompanion.insert(
-            emoji: '🌷',
-            name: 'Flower',
-            tier: 'standard',
-          ),
-          PlantCatalogCompanion.insert(
-            emoji: '🌳',
-            name: 'Tree',
-            tier: 'deep',
-          ),
-          PlantCatalogCompanion.insert(
-            emoji: '🥀',
-            name: 'Withered',
-            tier: 'failed',
-          ),
-        ]);
-      });
-    }
+    if (missingSpecs.isEmpty) return;
+
+    await batch((batch) {
+      batch.insertAll(
+        plantCatalog,
+        missingSpecs
+            .map(
+              (spec) => PlantCatalogCompanion.insert(
+                emoji: spec.emoji,
+                name: spec.name,
+                tier: spec.tier,
+              ),
+            )
+            .toList(),
+      );
+    });
   }
 
   Future<int> clearAllSessions() => delete(sessions).go();

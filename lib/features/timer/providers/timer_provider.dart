@@ -362,24 +362,12 @@ class TimerNotifier extends _$TimerNotifier {
 
       if (currentPhase == TimerPhase.focus) {
         final gardenRepo = ref.read(gardenRepositoryProvider);
-        String targetTier;
-
-        if (status == 'completed') {
-          final durationMinutes = actualDurationSeconds ~/ 60;
-          if (durationMinutes < 20) {
-            targetTier = 'quick';
-          } else if (durationMinutes < 50) {
-            targetTier = 'standard';
-          } else {
-            targetTier = 'deep';
-          }
-        } else {
-          targetTier = 'failed';
-        }
-
-        final catalogItem = await gardenRepo.getPlantCatalogItemByTier(targetTier);
-        if (catalogItem != null) {
-          await gardenRepo.insertPlant(catalogItem.id, actualDurationSeconds ~/ 60);
+        final reward = await gardenRepo.recordFocusOutcome(
+          isCompleted: status == 'completed',
+          durationMinutes: actualDurationSeconds ~/ 60,
+        );
+        if (reward != null) {
+          ref.read(latestGardenRewardProvider.notifier).state = reward;
         }
       }
     } catch (e) {
