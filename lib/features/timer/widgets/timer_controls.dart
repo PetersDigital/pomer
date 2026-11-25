@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -118,14 +118,14 @@ class _TimerControlsState extends ConsumerState<TimerControls> {
 
   @override
   Widget build(BuildContext context) {
-    final timerState = ref.watch(timerNotifierProvider);
+    final timerStatus = ref.watch(timerNotifierProvider.select((state) => state.status));
     final notifier = ref.read(timerNotifierProvider.notifier);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (timerState.status == TimerStatus.idle) ...[
+        if (timerStatus == TimerStatus.idle) ...[
           FilledButton.icon(
             onPressed: () async {
               if (PlatformUtils.isMobile &&
@@ -138,7 +138,7 @@ class _TimerControlsState extends ConsumerState<TimerControls> {
             label: const Text('Start'),
           ),
         ] else ...[
-          if (timerState.status == TimerStatus.running)
+          if (timerStatus == TimerStatus.running)
             IconButton.filled(
               onPressed: notifier.pause,
               icon: const Icon(Icons.pause),

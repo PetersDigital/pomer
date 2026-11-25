@@ -16,6 +16,7 @@ import 'package:pomer/core/logging/timer_diagnostics.dart';
 import 'package:pomer/database/database.dart';
 import 'package:pomer/core/providers/active_task_provider.dart';
 import 'package:drift/drift.dart' show Value;
+import 'package:pomer/core/providers/garden_repository_provider.dart';
 
 part 'timer_provider.g.dart';
 
@@ -344,6 +345,8 @@ class TimerNotifier extends _$TimerNotifier {
     }
 
     final db = ref.read(appDatabaseProvider);
+    final currentPhase = state.phase;
+
     try {
       final activeTask = ref.read(activeTaskProvider);
       await db.into(db.sessions).insert(
@@ -356,6 +359,17 @@ class TimerNotifier extends _$TimerNotifier {
               taskId: Value(activeTask?.id),
             ),
           );
+
+      if (currentPhase == TimerPhase.focus) {
+        final gardenRepo = ref.read(gardenRepositoryProvider);
+        final reward = await gardenRepo.recordFocusOutcome(
+          isCompleted: status == 'completed',
+          durationMinutes: actualDurationSeconds ~/ 60,
+        );
+        if (reward != null) {
+          ref.read(latestGardenRewardProvider.notifier).state = reward;
+        }
+      }
     } catch (e) {
       debugPrint('Failed to log session: $e');
     }

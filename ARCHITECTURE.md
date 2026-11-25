@@ -38,6 +38,7 @@ Shared providers that need to be accessed across features live in `core/provider
 - `task_list_provider` — Reactive task list and active task selection
 - `database_provider` — Drift database connection singleton
 - `active_task_provider` — Active task binding state
+- `garden_repository_provider` — Shared garden repository and latest reward event state
 - `power_management_provider` — Wake lock service
 - `battery_optimization_provider` — Battery optimization detection
 
@@ -54,6 +55,8 @@ lib/
 ├── core/
 │   ├── constants/
 │   │   └── app_constants.dart  # App-wide constants (name, version, durations)
+│   ├── models/
+│   │   └── garden_models.dart  # Gamification streak & unlock progression models
 │   ├── theme/
 │   │   └── app_theme.dart      # Material 3 light/dark themes, Google Fonts
 │   ├── utils/
@@ -62,6 +65,7 @@ lib/
 │   │   ├── task_list_provider.dart
 │   │   ├── active_task_provider.dart
 │   │   ├── database_provider.dart
+│   │   ├── garden_repository_provider.dart
 │   │   ├── power_management_provider.dart
 │   │   └── battery_optimization_provider.dart
 │   ├── services/               # Shared services (e.g., audio, notifications)
@@ -133,9 +137,10 @@ Navigation uses [GoRouter](https://pub.dev/packages/go_router) with a `ShellRout
 | Path        | Screen             | Nav Index |
 |-------------|--------------------|-----------|
 | `/`         | `TimerScreen`      | 0         |
-| `/stats`    | `StatisticsScreen` | 1         |
-| `/settings` | `SettingsScreen`   | 2         |
-| `/tasks`    | `TasksScreen`      | 3 (v0.6.0+) |
+| `/tasks`    | `TasksScreen`      | 1 (v0.6.0+) |
+| `/garden`   | `GardenScreen`     | 2 (v0.7.0+) |
+| `/stats`    | `StatisticsScreen` | 3         |
+| `/settings` | `SettingsScreen`   | 4         |
 
 ### Deep linking
 
@@ -172,6 +177,10 @@ No persistent data. Timer state is in-memory only. Theme mode defaults to system
 - **Task data model** with tags support (many-to-many relationship).
 - **Session-task join queries** for filtered statistics.
 - **Raw SQL queries** optimized with `requireTaskJoin` flag to avoid unnecessary joins.
+
+### v0.7.0+
+- **Gamification tables** (`PlantCatalog`, `UserGarden`) in Drift schema v3 with `v2 -> v3` migration and idempotent seeding for starter and milestone-unlockable plant species.
+- **Streaks & unlock progression** computed via `core/models/garden_models.dart` and awarded through `core/providers/garden_repository_provider.dart`.
 
 ---
 
@@ -283,7 +292,7 @@ Release notes are generated from the matching section in `CHANGELOG.md` for the 
 | v0.4.0 ✅ | Audio & Notifications — Alarm sounds, ambient audio, Android foreground service, notifications |
 | v0.5.0 ✅ | Statistics & Database — Drift/SQLite, session logging, dashboards, charts, CSV export |
 | v0.6.0 ✅ | Task Tracking & Battery Optimization — Task binding, task list, tags, task-filtered statistics, battery drain fixes |
-| v0.7.0 | Gamification — Plant rewards, garden collection, streaks, unlock progression |
+| v0.7.0 ✅ | Gamification — Plant rewards, garden collection, streaks, unlock progression |
 | v0.8.0 | Platform Hardening — App icons, splash screen, PWA, responsive layout, accessibility |
 | v0.9.0 | Polish & Bug Bash — Animations, onboarding, edge cases, integration tests, final polish |
 | v1.0.0-RC | Release Candidate — Version bump, changelog, release artifacts, beta testing |

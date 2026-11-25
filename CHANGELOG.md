@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - Gamification & Timer Performance
+
+### Added
+- **Gamification database schema:** Added `PlantCatalog` and `UserGarden` Drift tables (schema v3) with migration and idempotent seeding for 4 starter tiers (`🌱 Sprout`, `🌷 Flower`, `🌳 Tree`, `🥀 Withered`) and 5 milestone-unlockable species (`🌻 Sunflower`, `🌵 Cactus`, `🎋 Bamboo`, `🌸 Cherry Blossom`, `🌲 Pine`).
+- **Garden screen & navigation:** Added `/garden` route and 5th bottom navigation tab with a responsive emoji garden grid, streak summary header (current streak, best streak, healthy plants), and a Collection tab tracking unlock progress.
+- **Focus streaks & unlock progression:** Implemented DST-safe daily focus streak calculation and plant unlock progression based on streak days and healthy plant counts.
+- **Timer plant rewards & feedback:** Automatically grows or withers plants on focus session outcomes, awards newly unlocked milestone species, and shows floating `SnackBar` reward feedback on the timer screen.
+- **Gamification test suite:** Added database, unit, and widget tests covering catalog seeding, reward tiers, streaks, milestone unlocks, `GardenScreen` states, and reward `SnackBar` notifications.
+
+### Changed
+- **Feature isolation:** Moved `GardenRepository` and `gardenRepositoryProvider` into `core/providers/` alongside `core/models/garden_models.dart` to avoid cross-feature coupling between `timer` and `gamification`.
+- **Flutter SDK compatibility:** Added `material_ui` and migrated `package:flutter/material.dart` imports to `package:material_ui/material_ui.dart`; updated `analysis_options.yaml` exclusions and Android Gradle/AGP/Kotlin versions for Flutter stable.
+
+### Performance
+- **1Hz timer rebuild reduction:** Scoped `TimerScreen` and `TimerControls` watches using Riverpod `.select()` so 1Hz countdown ticks no longer trigger full screen/control rebuilds.
+- **Foreground task wakeups:** Switched Android foreground task `eventAction` from `repeat(1000)` to `nothing()` to eliminate redundant periodic isolate wakeups.
+
 ## [0.6.0] - Task Tracking & Battery Optimization
 
 ### Added
