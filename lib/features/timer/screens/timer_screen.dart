@@ -6,7 +6,9 @@ import 'package:pomer/features/timer/widgets/phase_utils.dart';
 import 'package:pomer/features/timer/widgets/timer_controls.dart';
 import 'package:pomer/features/timer/widgets/timer_display.dart';
 import 'package:pomer/features/timer/providers/audio_preferences_provider.dart';
+import 'package:pomer/core/models/garden_models.dart';
 import 'package:pomer/core/providers/active_task_provider.dart';
+import 'package:pomer/core/providers/garden_repository_provider.dart';
 import 'package:pomer/core/providers/task_list_provider.dart';
 
 /// Full Pomodoro timer screen.
@@ -15,6 +17,33 @@ class TimerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<GardenRewardEvent?>(latestGardenRewardProvider, (previous, next) {
+      if (next == null || previous?.eventId == next.eventId) {
+        return;
+      }
+
+      final String message;
+      if (next.isWithered) {
+        message =
+            '${next.plant.emoji} Your plant withered. Stay focused next time!';
+      } else if (next.newlyUnlocked.isNotEmpty) {
+        final unlockedNames =
+            next.newlyUnlocked.map((p) => '${p.emoji} ${p.name}').join(', ');
+        message = 'Unlocked & grew $unlockedNames!';
+      } else {
+        message = '${next.plant.emoji} ${next.plant.name} added to your garden!';
+      }
+
+      ScaffoldMessenger.maybeOf(context)
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(message),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+    });
+
     final timerPhase = ref.watch(timerNotifierProvider.select((state) => state.phase));
     final audioPrefsAsync = ref.watch(audioPreferencesNotifierProvider);
     final activeTask = ref.watch(activeTaskProvider);
