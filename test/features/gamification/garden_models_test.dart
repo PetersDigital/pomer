@@ -1,6 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pomer/core/models/garden_models.dart';
+import 'package:pomer/core/providers/database_provider.dart';
+import 'package:pomer/core/providers/garden_repository_provider.dart';
 import 'package:pomer/database/database.dart';
+import 'package:pomer/features/gamification/providers/garden_provider.dart';
+
+import '../../helpers/test_helpers.dart';
 
 void main() {
   final catalog = <PlantCatalogItem>[
@@ -29,6 +34,15 @@ void main() {
       );
 
       expect(stats, const GardenStats.empty());
+    });
+
+    test('plantRuleForTier returns matching rule or null for unknown tier', () {
+      final sunflower = plantRuleForTier('milestone_streak_3');
+      expect(sunflower, isNotNull);
+      expect(sunflower!.name, 'Sunflower');
+      expect(sunflower.unlockTarget, 3);
+
+      expect(plantRuleForTier('nonexistent_tier'), isNull);
     });
 
     test(
@@ -198,6 +212,49 @@ void main() {
       );
       expect(pine.isUnlocked, false);
       expect(pine.currentProgress, 3);
+    });
+  });
+
+  group('garden providers', () {
+    test(
+        'gardenStatsProvider and plantCollectionProvider update reactively when plants are recorded',
+        () async {
+      final container = createTestContainer();
+      final db = container.read(appDatabaseProvider);
+      final repository = container.read(gardenRepositoryProvider);
+      addTearDown(() async {
+        await db.close();
+        container.dispose();
+      });
+
+      final gardenSub = container.listen(userGardenProvider, (_, __) {});
+      final catalogSub = container.listen(plantCatalogProvider, (_, __) {});
+      addTearDown(gardenSub.close);
+      addTearDown(catalogSub.close);
+
+      await container.read(plantCatalogProvider.future);
+      await container.read(userGardenProvider.future);
+
+      expect(container.read(gardenStatsProvider), const GardenStats.empty());
+      expect(container.read(plantCollectionProvider), isNotEmpty);
+
+      await repository.recordFocusOutcome(
+        isCompleted: true,
+        durationMinutes: 25,
+        now: DateTime.now(),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      final stats = container.read(gardenStatsProvider);
+      expect(stats.totalHealthyPlants, 1);
+      expect(stats.currentStreak, 1);
+      expect(stats.bestStreak, 1);
+
+      final collection = container.read(plantCollectionProvider);
+      final flower = collection.firstWhere(
+        (entry) => entry.catalogItem.tier == 'standard',
+      );
+      expect(flower.earnedCount, 1);
     });
   });
 }

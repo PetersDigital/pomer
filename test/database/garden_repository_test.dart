@@ -1,3 +1,4 @@
+import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pomer/core/models/garden_models.dart';
@@ -155,6 +156,109 @@ void main() {
         contains('milestone_plants_5'),
       );
       expect(fifth.plant.tier, 'milestone_plants_5');
+    });
+
+    test('upgrades schema v2 database to v3 and seeds plant catalog', () async {
+      final nativeDb = NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('''
+            CREATE TABLE sessions (
+              id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+              start_time INTEGER NOT NULL,
+              end_time INTEGER NOT NULL,
+              duration_seconds INTEGER NOT NULL,
+              phase_type TEXT NOT NULL,
+              status TEXT NOT NULL,
+              task_id TEXT NULL
+            );
+          ''');
+          rawDb.execute('''
+            CREATE TABLE tasks (
+              id TEXT NOT NULL PRIMARY KEY,
+              title TEXT NOT NULL,
+              tag TEXT NULL,
+              is_completed INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL
+            );
+          ''');
+          rawDb.execute('PRAGMA user_version = 2;');
+        },
+      );
+
+      final migratedDb = AppDatabase.forTesting(nativeDb);
+      addTearDown(migratedDb.close);
+      final migratedRepo = GardenRepository(migratedDb);
+
+      final catalog = await migratedRepo.getCatalog();
+      expect(catalog.length, kPlantCatalogSpecs.length);
+
+      final reward = await migratedRepo.recordFocusOutcome(
+        isCompleted: true,
+        durationMinutes: 25,
+        now: DateTime(2026, 6, 10, 9),
+      );
+      expect(reward, isNotNull);
+      expect(reward!.plant.tier, 'standard');
+    });
+
+    test(
+        'backfills milestone species for existing v3 database with only 4 starter rows',
+        () async {
+      final nativeDb = NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('''
+            CREATE TABLE sessions (
+              id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+              start_time INTEGER NOT NULL,
+              end_time INTEGER NOT NULL,
+              duration_seconds INTEGER NOT NULL,
+              phase_type TEXT NOT NULL,
+              status TEXT NOT NULL,
+              task_id TEXT NULL
+            );
+          ''');
+          rawDb.execute('''
+            CREATE TABLE tasks (
+              id TEXT NOT NULL PRIMARY KEY,
+              title TEXT NOT NULL,
+              tag TEXT NULL,
+              is_completed INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL
+            );
+          ''');
+          rawDb.execute('''
+            CREATE TABLE plant_catalog (
+              id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+              emoji TEXT NOT NULL,
+              name TEXT NOT NULL,
+              tier TEXT NOT NULL
+            );
+          ''');
+          rawDb.execute('''
+            CREATE TABLE user_garden (
+              id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+              plant_id INTEGER NOT NULL REFERENCES plant_catalog(id),
+              earned_at INTEGER NOT NULL,
+              duration_minutes INTEGER NOT NULL
+            );
+          ''');
+          rawDb.execute(
+            "INSERT INTO plant_catalog (emoji, name, tier) VALUES ('🌱', 'Sprout', 'quick'), ('🌷', 'Flower', 'standard'), ('🌳', 'Tree', 'deep'), ('🥀', 'Withered', 'failed');",
+          );
+          rawDb.execute('PRAGMA user_version = 3;');
+        },
+      );
+
+      final existingDb = AppDatabase.forTesting(nativeDb);
+      addTearDown(existingDb.close);
+      final existingRepo = GardenRepository(existingDb);
+
+      final catalog = await existingRepo.getCatalog();
+      expect(catalog.length, kPlantCatalogSpecs.length);
+      expect(
+        catalog.map((c) => c.tier).toSet().length,
+        kPlantCatalogSpecs.length,
+      );
     });
   });
 }
